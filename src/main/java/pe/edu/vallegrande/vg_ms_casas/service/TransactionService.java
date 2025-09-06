@@ -39,6 +39,10 @@ public class TransactionService {
         return transactionRepository.findByStatusOrderByDateDesc("A");
     }
 
+    public Flux<Transaction> findByConsumptionId(Integer consumptionId) {
+        return transactionRepository.findByConsumptionIdOrderByDateDesc(consumptionId);
+    }
+
     public Mono<Transaction> save(Transaction transaction) {
         // Validaciones
         if (transaction.getInventoryId() == null) {
@@ -93,7 +97,7 @@ public class TransactionService {
                     if (transaction.getUserId() != null) {
                         existingTransaction.setUserId(transaction.getUserId());
                     }
-
+                    
                     return transactionRepository.save(existingTransaction);
                 })
                 .onErrorMap(throwable -> {
@@ -118,9 +122,9 @@ public class TransactionService {
     }
 
     private boolean isValidTransactionType(String type) {
-        return "ENTRADA".equals(type) ||
-                "SALIDA".equals(type) ||
-                "AJUSTE".equals(type) ||
-                "DAÑO".equals(type);
+        return "ENTRADA".equals(type) || 
+               "SALIDA".equals(type) || 
+               "AJUSTE".equals(type) || 
+               "DAÑO".equals(type);
     }
 }

@@ -47,6 +47,11 @@ public class TransactionController {
         return transactionService.findActive();
     }
 
+    @GetMapping("/consumption/{consumptionId}")
+    public Flux<Transaction> getByConsumptionId(@PathVariable Integer consumptionId) {
+        return transactionService.findByConsumptionId(consumptionId);
+    }
+
     @PostMapping
     public Mono<ResponseEntity<Transaction>> create(@RequestBody Transaction transaction) {
         return transactionService.save(transaction)

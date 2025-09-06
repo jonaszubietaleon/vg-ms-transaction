@@ -48,4 +48,7 @@ public class Transaction {
 
     @Column("status")
     private String status;
+
+    @Column("consumption_id")
+    private Integer consumptionId;
 }
