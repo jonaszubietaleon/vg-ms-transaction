@@ -1,68 +1,68 @@
+# Microservicio de Gestión de Inventario y Transacciones
+
 <div align="center">
 
-# 📦 Microservicio de Gestión de Inventario y Transacciones
+![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 
-<img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge" alt="Version">
-<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot">
-<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
-<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
-
-### 🎯 **Microservicio Especializado en Control de Inventario**
+### **Microservicio Especializado en Control de Inventario**
 *Sistema autónomo para gestión de stock con transacciones automatizadas y auditoría completa*
 
 </div>
 
 ---
 
-## 📋 **Descripción del Microservicio**
+## Descripción del Microservicio
 
-Este microservicio está diseñado para gestionar de forma integral el **inventario de productos** y el **registro automático de transacciones** en un ecosistema de microservicios empresarial. Su propósito principal es mantener el control exacto del stock disponible, registrando automáticamente cada movimiento (entradas, salidas, ajustes y daños) mediante un sistema de triggers inteligentes.
+Este microservicio está diseñado para gestionar de forma integral el **inventario de productos** y el **registro automático de transacciones** en un ecosistema de microservicios empresarial. Su propósito principal es mantener el control exacto del stock disponible, registrando automáticamente cada movimiento mediante un sistema de triggers inteligentes.
 
-### 🎯 **¿Qué Resuelve?**
+### ¿Qué Resuelve?
 - **Control de Stock en Tiempo Real**: Actualización inmediata del inventario disponible
 - **Auditoría Automática**: Cada movimiento genera automáticamente su registro de transacción
 - **Trazabilidad Completa**: Historial detallado de todos los cambios en el inventario
 - **Integración con Microservicios**: API REST para comunicación con otros servicios del ecosistema
 
-### 🔧 **Funcionalidades Core**
-- ✅ **Gestión de Inventario**: CRUD completo de productos en stock
-- ✅ **Transacciones Automáticas**: Sistema de triggers que registra movimientos
-- ✅ **4 Tipos de Movimientos**: ENTRADA, SALIDA, AJUSTE, DAÑO
-- ✅ **Consumos por Ubicación**: Control de consumos por hogar/ubicación específica
-- ✅ **Reversión Inteligente**: Anulación automática con restauración de stock
+### Funcionalidades Core
+- Gestión de Inventario: CRUD completo de productos en stock
+- Transacciones Automáticas: Sistema de triggers que registra movimientos
+- 4 Tipos de Movimientos: ENTRADA, SALIDA, AJUSTE, DAÑO
+- Consumos por Ubicación: Control de consumos por hogar/ubicación específica
+- Reversión Inteligente: Anulación automática con restauración de stock
 
 ---
 
-## 🏗️ **Arquitectura del Microservicio**
+## Arquitectura del Microservicio
 
 ```mermaid
 graph TB
-    subgraph "🌐 External Services"
+    subgraph "External Services"
         EXT[Otros Microservicios]
     end
     
-    subgraph "🎯 API Gateway"
+    subgraph "API Gateway"
         GW[Gateway/Load Balancer]
     end
     
-    subgraph "📦 Inventory Microservice"
-        subgraph "🎨 Presentation Layer"
+    subgraph "Inventory Microservice"
+        subgraph "Presentation Layer"
             CTR[Controllers REST]
             VAL[Validators]
         end
         
-        subgraph "⚡ Business Layer"
+        subgraph "Business Layer"
             SRV[Services]
             LOGIC[Business Logic]
         end
         
-        subgraph "🗄️ Data Layer"
+        subgraph "Data Layer"
             REPO[Repositories JPA]
             ENT[Entities]
         end
     end
     
-    subgraph "🗃️ Database"
+    subgraph "Database"
         DB[(PostgreSQL)]
         TRG[Triggers]
         FUNC[Functions]
@@ -86,7 +86,7 @@ graph TB
 
 ---
 
-## 🚀 **Stack Tecnológico**
+## Stack Tecnológico
 
 <div align="center">
 
@@ -94,26 +94,26 @@ graph TB
 <tr>
 <td align="center" width="33%">
 
-### 🎯 **Frontend**
-<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"><br>
-<img src="https://img.shields.io/badge/TypeScript-5.0+-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"><br>
-<img src="https://img.shields.io/badge/Bootstrap-5.3+-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap">
+### **Frontend**
+![Angular](https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white)<br>
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-007ACC?style=for-the-badge&logo=typescript&logoColor=white)<br>
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3+-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 
 </td>
 <td align="center" width="33%">
 
-### ⚡ **Backend**
-<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot"><br>
-<img src="https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java"><br>
-<img src="https://img.shields.io/badge/Maven-3.9+-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white" alt="Maven">
+### **Backend**
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)<br>
+![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)<br>
+![Maven](https://img.shields.io/badge/Maven-3.9+-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 
 </td>
 <td align="center" width="33%">
 
-### 🗄️ **Database**
-<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"><br>
-<img src="https://img.shields.io/badge/JPA-Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white" alt="JPA"><br>
-<img src="https://img.shields.io/badge/Flyway-Migrations-CC0200?style=for-the-badge&logo=flyway&logoColor=white" alt="Flyway">
+### **Database**
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)<br>
+![JPA](https://img.shields.io/badge/JPA-Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white)<br>
+![Flyway](https://img.shields.io/badge/Flyway-Migrations-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
 
 </td>
 </tr>
@@ -123,9 +123,9 @@ graph TB
 
 ---
 
-## 📊 **Modelo de Datos**
+## Modelo de Datos
 
-### 🎯 **Entidades Principales**
+### Entidades Principales
 
 ```mermaid
 erDiagram
@@ -177,11 +177,11 @@ erDiagram
 
 ---
 
-## 🔄 **Sistema de Transacciones Automáticas**
+## Sistema de Transacciones Automáticas
 
 <div align="center">
 
-### 🎯 **Tipos de Transacciones Implementadas**
+### **Tipos de Transacciones Implementadas**
 
 </div>
 
@@ -189,54 +189,54 @@ erDiagram
 <tr>
 <td width="25%" align="center">
 
-### 📈 **ENTRADA**
+### **ENTRADA**
 ```sql
 -- Casos:
 -- Stock inicial
 -- Reposiciones
 -- Compras nuevas
 ```
-**🎯 Incrementa Stock**  
-**✅ Auditoría Automática**
+**Incrementa Stock**  
+**Auditoría Automática**
 
 </td>
 <td width="25%" align="center">
 
-### 📉 **SALIDA**
+### **SALIDA**
 ```sql
 -- Casos:
 -- Consumos
 -- Ventas
 -- Distribuciones
 ```
-**🎯 Reduce Stock**  
-**✅ Validación Stock**
+**Reduce Stock**  
+**Validación Stock**
 
 </td>
 <td width="25%" align="center">
 
-### ⚖️ **AJUSTE**
+### **AJUSTE**
 ```sql
 -- Casos:
 -- Inventario físico
 -- Correcciones
 -- Calibraciones
 ```
-**🎯 Corrige Diferencias**  
-**✅ Registro Manual**
+**Corrige Diferencias**  
+**Registro Manual**
 
 </td>
 <td width="25%" align="center">
 
-### 💥 **DAÑO**
+### **DAÑO**
 ```sql
 -- Casos:
 -- Productos vencidos
 -- Dañados
 -- Pérdidas
 ```
-**🎯 Stock No Vendible**  
-**✅ Control Pérdidas**
+**Stock No Vendible**  
+**Control Pérdidas**
 
 </td>
 </tr>
@@ -244,18 +244,18 @@ erDiagram
 
 ---
 
-## ⚡ **Triggers y Funciones Automáticas**
+## Triggers y Funciones Automáticas
 
-### 🔄 **Flujo de Automatización**
+### **Flujo de Automatización**
 
 <div align="center">
 
 ```mermaid
 sequenceDiagram
-    participant MS as 📦 Microservicio
-    participant INV as 🗄️ Inventario
-    participant TRG as ⚡ Triggers
-    participant TXN as 📊 Transacciones
+    participant MS as Microservicio
+    participant INV as Inventario
+    participant TRG as Triggers
+    participant TXN as Transacciones
     
     Note over MS,TXN: Flujo de Registro de Inventario
     
@@ -283,10 +283,10 @@ sequenceDiagram
 
 </div>
 
-### 🛠️ **Funciones SQL Implementadas**
+### **Funciones SQL Implementadas**
 
 <details>
-<summary><strong>📦 registrar_transaccion_inventario()</strong></summary>
+<summary><strong>registrar_transaccion_inventario()</strong></summary>
 
 ```sql
 -- Propósito: Registra automáticamente transacción ENTRADA al crear inventario
@@ -318,7 +318,7 @@ $$ LANGUAGE plpgsql;
 </details>
 
 <details>
-<summary><strong>🔄 registrar_transaccion_consumo()</strong></summary>
+<summary><strong>registrar_transaccion_consumo()</strong></summary>
 
 ```sql
 -- Propósito: Registra automáticamente transacción SALIDA al consumir
@@ -353,7 +353,7 @@ $$ LANGUAGE plpgsql;
 </details>
 
 <details>
-<summary><strong>↩️ devolver_stock()</strong></summary>
+<summary><strong>devolver_stock()</strong></summary>
 
 ```sql
 -- Propósito: Revierte stock automáticamente al anular consumo
@@ -383,9 +383,9 @@ $$ LANGUAGE plpgsql;
 
 ---
 
-## 🎯 **API Endpoints del Microservicio**
+## API Endpoints del Microservicio
 
-### 📦 **Inventario Management**
+### **Inventario Management**
 
 | Método | Endpoint | Descripción | Request | Response |
 |--------|----------|-------------|---------|----------|
@@ -395,7 +395,7 @@ $$ LANGUAGE plpgsql;
 | `PUT` | `/api/inventory/{id}` | Actualiza stock | `UpdateStockRequest` | `InventoryDTO` |
 | `DELETE` | `/api/inventory/{id}` | Elimina inventario | `Long id` | `200 OK` |
 
-### 🔄 **Transacciones Management**
+### **Transacciones Management**
 
 | Método | Endpoint | Descripción | Request | Response |
 |--------|----------|-------------|---------|----------|
@@ -404,7 +404,7 @@ $$ LANGUAGE plpgsql;
 | `GET` | `/api/transactions/type/{type}` | Transacciones por tipo | `String type` | `List<TransactionDTO>` |
 | `GET` | `/api/transactions/report` | Genera reporte PDF | `ReportRequest` | `byte[]` |
 
-### 🏠 **Consumos Management**
+### **Consumos Management**
 
 | Método | Endpoint | Descripción | Request | Response |
 |--------|----------|-------------|---------|----------|
@@ -415,9 +415,9 @@ $$ LANGUAGE plpgsql;
 
 ---
 
-## 🛠️ **Configuración y Deployment**
+## Configuración y Deployment
 
-### 📋 **Requisitos del Sistema**
+### **Requisitos del Sistema**
 
 ```yaml
 # Especificaciones mínimas
@@ -429,7 +429,7 @@ Memory: 512MB RAM mínimo
 Storage: 1GB disponible
 ```
 
-### ⚙️ **Variables de Entorno**
+### **Variables de Entorno**
 
 ```properties
 # Database Configuration
@@ -448,7 +448,7 @@ EUREKA_SERVER_URL=http://localhost:8761/eureka
 CONFIG_SERVER_URL=http://localhost:8888
 ```
 
-### 🚀 **Quick Start**
+### **Quick Start**
 
 ```bash
 # 1. Clonar repositorio
@@ -466,7 +466,7 @@ mvn clean spring-boot:run
 curl http://localhost:8080/actuator/health
 ```
 
-### 🐳 **Docker Support**
+### **Docker Support**
 
 ```dockerfile
 FROM openjdk:17-jdk-slim
@@ -502,9 +502,9 @@ services:
 
 ---
 
-## 🔒 **Validaciones y Constraints**
+## Validaciones y Constraints
 
-### 🛡️ **Validaciones de Negocio**
+### **Validaciones de Negocio**
 
 ```java
 // Validaciones implementadas en el microservicio
@@ -518,7 +518,7 @@ private Integer currentStock;
 private String status;
 ```
 
-### 🗄️ **Constraints de Base de Datos**
+### **Constraints de Base de Datos**
 
 ```sql
 -- Constraints automáticos implementados
@@ -537,9 +537,9 @@ CHECK (type IN ('ENTRADA', 'SALIDA', 'AJUSTE', 'DAÑO'));
 
 ---
 
-## 📊 **Monitoreo y Métricas**
+## Monitoreo y Métricas
 
-### 🎯 **Health Checks**
+### **Health Checks**
 
 ```yaml
 # Endpoints de monitoreo disponibles
@@ -549,7 +549,7 @@ CHECK (type IN ('ENTRADA', 'SALIDA', 'AJUSTE', 'DAÑO'));
 /actuator/prometheus  # Métricas para Prometheus
 ```
 
-### 📈 **Métricas Clave**
+### **Métricas Clave**
 
 - **Transacciones por segundo**: Rate de procesamiento
 - **Stock crítico**: Productos con stock bajo
@@ -559,9 +559,9 @@ CHECK (type IN ('ENTRADA', 'SALIDA', 'AJUSTE', 'DAÑO'));
 
 ---
 
-## 🧪 **Testing**
+## Testing
 
-### 🎯 **Cobertura de Tests**
+### **Cobertura de Tests**
 
 ```bash
 # Ejecutar tests unitarios
@@ -574,19 +574,19 @@ mvn verify
 mvn jacoco:report
 ```
 
-### 📋 **Casos de Test Implementados**
+### **Casos de Test Implementados**
 
-- ✅ **Unit Tests**: Lógica de negocio de services
-- ✅ **Integration Tests**: Endpoints REST completos
-- ✅ **Repository Tests**: Operaciones de base de datos
-- ✅ **Trigger Tests**: Validación de funciones automáticas
+- **Unit Tests**: Lógica de negocio de services
+- **Integration Tests**: Endpoints REST completos
+- **Repository Tests**: Operaciones de base de datos
+- **Trigger Tests**: Validación de funciones automáticas
 
 ---
 
-## 🔧 **Troubleshooting Común**
+## Troubleshooting Común
 
 <details>
-<summary><strong>❗ Error: Constraint violation - Stock negativo</strong></summary>
+<summary><strong>Error: Constraint violation - Stock negativo</strong></summary>
 
 **Problema:** `ERROR: new row violates check constraint "check_stock_positive"`
 
@@ -602,7 +602,7 @@ WHERE product_id = {product_id};
 </details>
 
 <details>
-<summary><strong>⚠️ Trigger no ejecuta automáticamente</strong></summary>
+<summary><strong>Trigger no ejecuta automáticamente</strong></summary>
 
 **Problema:** Las transacciones no se crean al insertar inventario
 
@@ -621,7 +621,7 @@ ALTER TABLE inventory_consumption ENABLE TRIGGER ALL;
 </details>
 
 <details>
-<summary><strong>🔄 Error en reversión de stock</strong></summary>
+<summary><strong>Error en reversión de stock</strong></summary>
 
 **Problema:** El stock no se restaura al anular consumo
 
@@ -639,16 +639,16 @@ if ("I".equals(newStatus) && "A".equals(oldStatus)) {
 
 ---
 
-## 📚 **Documentación Adicional**
+## Documentación Adicional
 
-### 🎯 **Enlaces Útiles**
+### **Enlaces Útiles**
 
-- 📖 **API Documentation**: `/swagger-ui.html`
-- 🔧 **Postman Collection**: `docs/postman/inventory-api.json`
-- 🗄️ **Database Schema**: `docs/database/schema.sql`
-- 🐳 **Docker Guide**: `docs/deployment/docker.md`
+- **API Documentation**: `/swagger-ui.html`
+- **Postman Collection**: `docs/postman/inventory-api.json`
+- **Database Schema**: `docs/database/schema.sql`
+- **Docker Guide**: `docs/deployment/docker.md`
 
-### 📋 **Scripts Útiles**
+### **Scripts Útiles**
 
 ```bash
 # Backup de base de datos
@@ -666,26 +666,26 @@ if ("I".equals(newStatus) && "A".equals(oldStatus)) {
 
 ---
 
-## 🚀 **Roadmap y Mejoras Futuras**
+## Roadmap y Mejoras Futuras
 
-- [ ] 🔔 **Notificaciones**: Alertas de stock crítico
-- [ ] 📊 **Analytics**: Dashboard con métricas avanzadas  
-- [ ] 🔍 **Elasticsearch**: Búsqueda full-text en transacciones
-- [ ] 🌐 **GraphQL**: Endpoint alternativo para queries complejas
-- [ ] 📱 **WebSockets**: Actualizaciones en tiempo real
-- [ ] 🤖 **ML**: Predicción de demanda basada en histórico
+- **Notificaciones**: Alertas de stock crítico
+- **Analytics**: Dashboard con métricas avanzadas  
+- **Elasticsearch**: Búsqueda full-text en transacciones
+- **GraphQL**: Endpoint alternativo para queries complejas
+- **WebSockets**: Actualizaciones en tiempo real
+- **ML**: Predicción de demanda basada en histórico
 
 ---
 
 <div align="center">
 
-## 📦 **Microservicio de Inventario**
+## **Microservicio de Inventario**
 *Desarrollado para sistemas distribuidos de alta performance*
 
-<img src="https://img.shields.io/badge/Microservice-Ready-success?style=for-the-badge" alt="Microservice Ready">
-<img src="https://img.shields.io/badge/Production-Tested-blue?style=for-the-badge" alt="Production Tested">
-<img src="https://img.shields.io/badge/API-RESTful-orange?style=for-the-badge" alt="RESTful API">
+![Microservice Ready](https://img.shields.io/badge/Microservice-Ready-success?style=for-the-badge)
+![Production Tested](https://img.shields.io/badge/Production-Tested-blue?style=for-the-badge)
+![RESTful API](https://img.shields.io/badge/API-RESTful-orange?style=for-the-badge)
 
-**[⬆ Volver arriba](#-microservicio-de-gestión-de-inventario-y-transacciones)**
+**[Volver arriba](#microservicio-de-gestión-de-inventario-y-transacciones)**
 
 </div>
