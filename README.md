@@ -1,668 +1,1613 @@
+# Sistema de Gestión de Inventario & Transacciones - Backend
+
 <div align="center">
 
-# 🚀 Sistema de Gestión de Inventario & Transacciones
+![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge&logo=semantic-release)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=java&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 
-<img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge&logo=semantic-release" alt="Version">
-<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot">
-<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
-<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
-
-### 💎 **Sistema Enterprise de Control Automatizado**
-*Gestión inteligente de inventario con transacciones automáticas y auditoría completa*
-
-[🎯 Demo Live](#) • [📚 Documentación](#) • [🐛 Issues](#) • [💬 Discussions](#)
+### Sistema Enterprise de Control de Inventario Automatizado
+*API REST robusta con control transaccional avanzado y auditoría completa*
 
 </div>
 
 ---
 
-## 🌟 **Características Premium**
+## Arquitectura del Backend
 
-<table>
-<tr>
-<td width="50%">
+El sistema está diseñado siguiendo patrones de arquitectura hexagonal y principios SOLID, proporcionando una base sólida para operaciones críticas de negocio.
 
-### 🎯 **Inventario Inteligente**
-- ✅ **Control de Stock Automático**
-- ✅ **Validaciones en Tiempo Real**
-- ✅ **Alertas de Stock Crítico**
-- ✅ **Auditoría Completa 360°**
+### Stack Tecnológico
 
-</td>
-<td width="50%">
-
-### 🔄 **Transacciones Avanzadas**
-- ✅ **Sistema de Triggers Automáticos**
-- ✅ **4 Tipos de Movimientos**
-- ✅ **Trazabilidad Total**
-- ✅ **Reversión Inteligente**
-
-</td>
-</tr>
-</table>
+- **Framework**: Spring Boot 3.2+ con Spring Data JPA
+- **Base de Datos**: PostgreSQL 15+ con triggers automatizados
+- **Validaciones**: Bean Validation (JSR 303)
+- **Documentación**: OpenAPI 3.0 / Swagger
+- **Testing**: JUnit 5 + Testcontainers
 
 ---
 
-## 🏗️ **Arquitectura del Sistema**
+## Modelo de Dominio
 
-```mermaid
-graph TB
-    subgraph "🎨 Frontend Layer"
-        A[Angular 17+ UI]
-        B[Reactive Components]
-        C[HTTP Interceptors]
-    end
+### Entidad: Inventory Consumption
+
+```java
+@Entity
+@Table(name = "inventory_consumption")
+public class InventoryConsumption {
     
-    subgraph "⚡ Backend Layer"
-        D[Spring Boot API]
-        E[JPA Repositories]
-        F[Business Logic]
-    end
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_inventory")
+    private Long id;
     
-    subgraph "🗄️ Database Layer"
-        G[PostgreSQL]
-        H[Automated Triggers]
-        I[Smart Functions]
-    end
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
     
-    A --> D
-    B --> E
-    C --> F
-    D --> G
-    E --> H
-    F --> I
+    @Column(name = "initial_stock", nullable = false)
+    @Min(value = 0, message = "Stock inicial no puede ser negativo")
+    private Integer initialStock;
     
-    style A fill:#e1f5fe
-    style D fill:#f3e5f5
-    style G fill:#e8f5e8
+    @Column(name = "current_stock", nullable = false)
+    @Min(value = 0, message = "Stock actual no puede ser negativo")
+    private Integer currentStock;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 1)
+    private StatusType status = StatusType.ACTIVE;
+    
+    @OneToMany(mappedBy = "inventoryConsumption", cascade = CascadeType.ALL)
+    private List<Transaction> transactions = new ArrayList<>();
+}
+```
+
+### Entidad: Transaction
+
+```java
+@Entity
+@Table(name = "transactions")
+public class Transaction {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_transaction")
+    private Long id;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id", nullable = false)
+    private InventoryConsumption inventoryConsumption;
+    
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private TransactionType type;
+    
+    @Column(name = "quantity", nullable = false)
+    @Min(value = 1, message = "La cantidad debe ser mayor a 0")
+    private Integer quantity;
+    
+    @Column(name = "previous_stock", nullable = false)
+    private Integer previousStock;
+    
+    @Column(name = "new_stock", nullable = false)
+    private Integer newStock;
+    
+    @Column(name = "date", nullable = false)
+    @CreationTimestamp
+    private LocalDateTime date;
+    
+    @Column(name = "reason", columnDefinition = "TEXT")
+    private String reason;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 1)
+    private StatusType status = StatusType.ACTIVE;
+}
+```
+
+### Enums del Dominio
+
+```java
+public enum TransactionType {
+    ENTRADA("Entrada de mercancía"),
+    SALIDA("Salida por consumo/venta"),
+    AJUSTE("Ajuste de inventario"),
+    DANO("Producto dañado/vencido");
+    
+    private final String description;
+}
+
+public enum StatusType {
+    ACTIVE('A'),
+    INACTIVE('I');
+    
+    private final char code;
+}
 ```
 
 ---
 
-## 📊 **Modelo de Datos Inteligente**
+## Capa de Repositorio
 
-### 🎯 **Entidades Principales**
+### Repository: InventoryConsumptionRepository
 
-<div align="center">
-
-```mermaid
-erDiagram
-    INVENTORY_CONSUMPTION ||--o{ TRANSACTIONS : generates
-    HOME ||--o{ CONSUMPTION : has
-    CONSUMPTION ||--o{ TRANSACTIONS : originates
+```java
+@Repository
+public interface InventoryConsumptionRepository extends JpaRepository<InventoryConsumption, Long> {
     
-    INVENTORY_CONSUMPTION {
-        serial id_inventory PK "🔑"
-        bigint product_id "📦"
-        integer initial_stock "📈"
-        integer current_stock "📊"
-        char status "🔄"
+    Optional<InventoryConsumption> findByProductId(Long productId);
+    
+    @Query("SELECT ic FROM InventoryConsumption ic WHERE ic.currentStock <= :threshold")
+    List<InventoryConsumption> findLowStockProducts(@Param("threshold") Integer threshold);
+    
+    @Modifying
+    @Query("UPDATE InventoryConsumption ic SET ic.currentStock = ic.currentStock - :quantity " +
+           "WHERE ic.productId = :productId")
+    int decreaseStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
+    
+    @Query("SELECT SUM(ic.currentStock * ic.averagePrice) FROM InventoryConsumption ic " +
+           "WHERE ic.status = 'A'")
+    BigDecimal calculateTotalInventoryValue();
+}
+```
+
+### Repository: TransactionRepository
+
+```java
+@Repository
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    
+    List<Transaction> findByProductIdOrderByDateDesc(Long productId);
+    
+    @Query("SELECT t FROM Transaction t WHERE t.date BETWEEN :startDate AND :endDate " +
+           "ORDER BY t.date DESC")
+    Page<Transaction> findByDateRange(@Param("startDate") LocalDateTime startDate,
+                                    @Param("endDate") LocalDateTime endDate,
+                                    Pageable pageable);
+    
+    @Query("SELECT t FROM Transaction t WHERE t.type = :type AND t.status = 'A' " +
+           "ORDER BY t.date DESC")
+    List<Transaction> findByTypeAndActiveStatus(@Param("type") TransactionType type);
+    
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.productId = :productId " +
+           "AND t.date >= :date")
+    Long countRecentTransactions(@Param("productId") Long productId, 
+                                @Param("date") LocalDateTime date);
+}
+```
+
+---
+
+## Capa de Servicios
+
+### Service: InventoryService
+
+```java
+@Service
+@Transactional
+public class InventoryService {
+    
+    private final InventoryConsumptionRepository inventoryRepository;
+    private final TransactionRepository transactionRepository;
+    
+    public InventoryConsumption createInventory(CreateInventoryRequest request) {
+        
+        // Validar si ya existe inventario para este producto
+        Optional<InventoryConsumption> existing = inventoryRepository.findByProductId(request.getProductId());
+        if (existing.isPresent()) {
+            throw new DuplicateInventoryException("Ya existe inventario para el producto: " + request.getProductId());
+        }
+        
+        // Crear nueva entrada de inventario
+        InventoryConsumption inventory = InventoryConsumption.builder()
+            .productId(request.getProductId())
+            .initialStock(request.getInitialStock())
+            .currentStock(request.getInitialStock())
+            .status(StatusType.ACTIVE)
+            .build();
+            
+        InventoryConsumption saved = inventoryRepository.save(inventory);
+        
+        // La transacción ENTRADA se crea automáticamente por trigger de BD
+        log.info("Inventario creado para producto {}: {} unidades", 
+                request.getProductId(), request.getInitialStock());
+        
+        return saved;
     }
     
-    TRANSACTIONS {
-        serial id_transaction PK "🔑"
-        varchar type "🏷️"
-        integer quantity "📊"
-        integer previous_stock "📈"
-        integer new_stock "📉"
-        timestamp date "📅"
-        text reason "📝"
+    @Transactional(readOnly = true)
+    public Page<InventoryConsumption> getAllInventory(Pageable pageable) {
+        return inventoryRepository.findAll(pageable);
     }
     
-    CONSUMPTION {
-        serial id_consumption PK "🔑"
-        date consumption_date "📅"
-        integer quantity "📊"
-        integer price "💰"
-        char status "🔄"
+    @Transactional(readOnly = true)
+    public InventoryConsumption getByProductId(Long productId) {
+        return inventoryRepository.findByProductId(productId)
+            .orElseThrow(() -> new InventoryNotFoundException("Inventario no encontrado para producto: " + productId));
     }
+    
+    public InventoryConsumption adjustStock(Long productId, StockAdjustmentRequest request) {
+        
+        InventoryConsumption inventory = getByProductId(productId);
+        
+        // Validar que el ajuste no resulte en stock negativo
+        int newStock = inventory.getCurrentStock() + request.getAdjustment();
+        if (newStock < 0) {
+            throw new InsufficientStockException("Stock insuficiente. Stock actual: " + 
+                inventory.getCurrentStock() + ", Ajuste: " + request.getAdjustment());
+        }
+        
+        // Actualizar stock
+        inventory.setCurrentStock(newStock);
+        InventoryConsumption updated = inventoryRepository.save(inventory);
+        
+        // Registrar transacción manual de ajuste
+        Transaction adjustmentTransaction = Transaction.builder()
+            .inventoryConsumption(inventory)
+            .productId(productId)
+            .type(TransactionType.AJUSTE)
+            .quantity(Math.abs(request.getAdjustment()))
+            .previousStock(inventory.getCurrentStock() - request.getAdjustment())
+            .newStock(newStock)
+            .reason(request.getReason())
+            .status(StatusType.ACTIVE)
+            .build();
+            
+        transactionRepository.save(adjustmentTransaction);
+        
+        log.info("Stock ajustado para producto {}: {} -> {}", productId, 
+                inventory.getCurrentStock() - request.getAdjustment(), newStock);
+        
+        return updated;
+    }
+    
+    @Transactional(readOnly = true)
+    public List<InventoryConsumption> getLowStockProducts(Integer threshold) {
+        return inventoryRepository.findLowStockProducts(threshold != null ? threshold : 10);
+    }
+}
 ```
 
-</div>
+### Service: TransactionService
 
----
-
-## 🚀 **Funcionalidades Core Implementadas**
-
-<div align="center">
-
-### 🎯 **GESTIÓN DE INVENTARIO**
-
-</div>
-
-<table>
-<tr>
-<td width="25%" align="center">
-
-### 📦 **Registro**
-```sql
-INSERT INTO inventory_consumption
-VALUES (product_id, stock, stock, 'A');
-```
-**✅ Automático**  
-**✅ Validado**
-
-</td>
-<td width="25%" align="center">
-
-### 📊 **Control Stock**
-```sql
-UPDATE inventory_consumption
-SET current_stock = new_value;
-```
-**✅ Tiempo Real**  
-**✅ Triggers**
-
-</td>
-<td width="25%" align="center">
-
-### 🔄 **Actualización**
-```sql
--- Trigger automático
--- registra ENTRADA
-```
-**✅ Automático**  
-**✅ Auditado**
-
-</td>
-<td width="25%" align="center">
-
-### 📈 **Reportes**
-```sql
-SELECT * FROM vw_transactions
-ORDER BY date DESC;
-```
-**✅ Vista SQL**  
-**✅ Optimizada**
-
-</td>
-</tr>
-</table>
-
----
-
-<div align="center">
-
-### 🔄 **SISTEMA DE TRANSACCIONES**
-
-</div>
-
-<table>
-<tr>
-<td width="25%" align="center">
-
-### 📈 **ENTRADA**
-<div style="background: linear-gradient(45deg, #4CAF50, #8BC34A); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
-Stock Inicial<br>
-Reposiciones<br>
-Ajustes +
-</div>
-
-</td>
-<td width="25%" align="center">
-
-### 📉 **SALIDA**
-<div style="background: linear-gradient(45deg, #F44336, #FF5722); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
-Consumos<br>
-Ventas<br>
-Distribución
-</div>
-
-</td>
-<td width="25%" align="center">
-
-### ⚖️ **AJUSTE**
-<div style="background: linear-gradient(45deg, #FF9800, #FFC107); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
-Correcciones<br>
-Inventario Físico<br>
-Calibración
-</div>
-
-</td>
-<td width="25%" align="center">
-
-### 💥 **DAÑO**
-<div style="background: linear-gradient(45deg, #9C27B0, #E91E63); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
-Productos Dañados<br>
-Vencimientos<br>
-Pérdidas
-</div>
-
-</td>
-</tr>
-</table>
-
----
-
-## ⚡ **Sistema de Triggers Automáticos**
-
-<div align="center">
-
-### 🎯 **Flujo de Automatización**
-
-</div>
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 Usuario
-    participant I as 📦 Inventario
-    participant T as 🔄 Triggers
-    participant TX as 📊 Transacciones
+```java
+@Service
+@Transactional(readOnly = true)
+public class TransactionService {
     
-    Note over U,TX: 🚀 Flujo de Registro Automático
+    private final TransactionRepository transactionRepository;
+    private final InventoryService inventoryService;
     
-    U->>I: 📝 Registra Inventario
-    I->>T: 🔔 trigger_registrar_inventario
-    T->>TX: ✅ Crea ENTRADA automática
-    TX-->>U: 📈 Stock actualizado
+    public Page<Transaction> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable);
+    }
     
-    Note over U,TX: 🔄 Flujo de Consumo
+    public Page<Transaction> getTransactionsByDateRange(LocalDateTime startDate, 
+                                                       LocalDateTime endDate, 
+                                                       Pageable pageable) {
+        return transactionRepository.findByDateRange(startDate, endDate, pageable);
+    }
     
-    U->>I: 📉 Registra Consumo
-    I->>T: 🔔 trigger_registrar_consumo
-    T->>TX: ✅ Crea SALIDA automática
-    T->>I: 📊 Actualiza current_stock
-    TX-->>U: 🎯 Transacción completa
+    public List<Transaction> getTransactionsByProduct(Long productId) {
+        return transactionRepository.findByProductIdOrderByDateDesc(productId);
+    }
     
-    Note over U,TX: ↩️ Flujo de Reversión
+    public List<Transaction> getTransactionsByType(TransactionType type) {
+        return transactionRepository.findByTypeAndActiveStatus(type);
+    }
     
-    U->>I: ❌ Anula Consumo
-    I->>T: 🔔 trigger_devolver_stock
-    T->>I: 📈 Restaura stock
-    T->>TX: ❌ Marca transacción inactiva
-    TX-->>U: ✅ Reversión completa
+    @Transactional
+    public void processConsumption(ConsumptionRequest request) {
+        
+        // Validar disponibilidad de stock
+        InventoryConsumption inventory = inventoryService.getByProductId(request.getProductId());
+        
+        if (inventory.getCurrentStock() < request.getQuantity()) {
+            throw new InsufficientStockException(
+                String.format("Stock insuficiente. Disponible: %d, Solicitado: %d", 
+                    inventory.getCurrentStock(), request.getQuantity()));
+        }
+        
+        // El trigger de BD se encarga de:
+        // 1. Actualizar el current_stock
+        // 2. Crear la transacción SALIDA automáticamente
+        
+        // Solo necesitamos registrar el consumo
+        // (esto activará el trigger automático)
+        
+        log.info("Procesando consumo - Producto: {}, Cantidad: {}", 
+                request.getProductId(), request.getQuantity());
+    }
+    
+    public TransactionSummaryDTO getTransactionSummary(Long productId, Period period) {
+        
+        LocalDateTime startDate = LocalDateTime.now().minus(period);
+        LocalDateTime endDate = LocalDateTime.now();
+        
+        List<Transaction> transactions = transactionRepository.findByProductIdAndDateBetween(
+            productId, startDate, endDate);
+        
+        return TransactionSummaryDTO.builder()
+            .productId(productId)
+            .totalEntradas(calculateTotalByType(transactions, TransactionType.ENTRADA))
+            .totalSalidas(calculateTotalByType(transactions, TransactionType.SALIDA))
+            .totalAjustes(calculateTotalByType(transactions, TransactionType.AJUSTE))
+            .totalDanos(calculateTotalByType(transactions, TransactionType.DANO))
+            .period(period)
+            .build();
+    }
+    
+    private Integer calculateTotalByType(List<Transaction> transactions, TransactionType type) {
+        return transactions.stream()
+            .filter(t -> t.getType() == type)
+            .mapToInt(Transaction::getQuantity)
+            .sum();
+    }
+}
 ```
 
 ---
 
-## 🎨 **Stack Tecnológico Premium**
+## Capa de Controladores REST
 
-<div align="center">
+### Controller: InventoryController
 
-<table>
-<tr>
-<td align="center" width="33%">
+```java
+@RestController
+@RequestMapping("/api/inventory")
+@Validated
+public class InventoryController {
+    
+    private final InventoryService inventoryService;
+    
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<InventoryResponse> createInventory(@Valid @RequestBody CreateInventoryRequest request) {
+        
+        InventoryConsumption created = inventoryService.createInventory(request);
+        InventoryResponse response = InventoryMapper.toResponse(created);
+        
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .location(URI.create("/api/inventory/" + created.getId()))
+            .body(response);
+    }
+    
+    @GetMapping
+    public ResponseEntity<Page<InventoryResponse>> getAllInventory(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        
+        Page<InventoryConsumption> inventoryPage = inventoryService.getAllInventory(pageable);
+        Page<InventoryResponse> response = inventoryPage.map(InventoryMapper::toResponse);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<InventoryResponse> getInventoryById(@PathVariable Long id) {
+        
+        InventoryConsumption inventory = inventoryService.getById(id);
+        InventoryResponse response = InventoryMapper.toResponse(inventory);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<InventoryResponse> getInventoryByProduct(@PathVariable Long productId) {
+        
+        InventoryConsumption inventory = inventoryService.getByProductId(productId);
+        InventoryResponse response = InventoryMapper.toResponse(inventory);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PutMapping("/{id}/adjust")
+    public ResponseEntity<InventoryResponse> adjustStock(@PathVariable Long id,
+                                                        @Valid @RequestBody StockAdjustmentRequest request) {
+        
+        InventoryConsumption updated = inventoryService.adjustStock(id, request);
+        InventoryResponse response = InventoryMapper.toResponse(updated);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<InventoryResponse>> getLowStockProducts(
+            @RequestParam(defaultValue = "10") Integer threshold) {
+        
+        List<InventoryConsumption> lowStock = inventoryService.getLowStockProducts(threshold);
+        List<InventoryResponse> response = lowStock.stream()
+            .map(InventoryMapper::toResponse)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    }
+}
+```
 
-### 🎯 **Frontend**
-<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"><br>
-<img src="https://img.shields.io/badge/TypeScript-5.0+-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"><br>
-<img src="https://img.shields.io/badge/RxJS-7.8+-B7178C?style=for-the-badge&logo=reactivex&logoColor=white" alt="RxJS">
+### Controller: TransactionController
 
-</td>
-<td align="center" width="33%">
-
-### ⚡ **Backend**
-<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot"><br>
-<img src="https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=java&logoColor=white" alt="Java"><br>
-<img src="https://img.shields.io/badge/JPA-Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white" alt="JPA">
-
-</td>
-<td align="center" width="33%">
-
-### 🗄️ **Database**
-<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"><br>
-<img src="https://img.shields.io/badge/Triggers-Automated-FF6B6B?style=for-the-badge&logo=database&logoColor=white" alt="Triggers"><br>
-<img src="https://img.shields.io/badge/Functions-PL/pgSQL-4ECDC4?style=for-the-badge&logo=postgresql&logoColor=white" alt="Functions">
-
-</td>
-</tr>
-</table>
-
-</div>
+```java
+@RestController
+@RequestMapping("/api/transactions")
+@Validated
+public class TransactionController {
+    
+    private final TransactionService transactionService;
+    
+    @GetMapping
+    public ResponseEntity<Page<TransactionResponse>> getAllTransactions(
+            @PageableDefault(size = 50, sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+        
+        Page<Transaction> transactions = transactionService.getAllTransactions(pageable);
+        Page<TransactionResponse> response = transactions.map(TransactionMapper::toResponse);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/filter")
+    public ResponseEntity<Page<TransactionResponse>> getTransactionsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @PageableDefault(size = 50, sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
+        
+        Page<Transaction> transactions = transactionService.getTransactionsByDateRange(
+            startDate, endDate, pageable);
+        Page<TransactionResponse> response = transactions.map(TransactionMapper::toResponse);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByProduct(@PathVariable Long productId) {
+        
+        List<Transaction> transactions = transactionService.getTransactionsByProduct(productId);
+        List<TransactionResponse> response = transactions.stream()
+            .map(TransactionMapper::toResponse)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/type/{type}")
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByType(@PathVariable TransactionType type) {
+        
+        List<Transaction> transactions = transactionService.getTransactionsByType(type);
+        List<TransactionResponse> response = transactions.stream()
+            .map(TransactionMapper::toResponse)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/summary/{productId}")
+    public ResponseEntity<TransactionSummaryDTO> getTransactionSummary(
+            @PathVariable Long productId,
+            @RequestParam(defaultValue = "P30D") Period period) {
+        
+        TransactionSummaryDTO summary = transactionService.getTransactionSummary(productId, period);
+        
+        return ResponseEntity.ok(summary);
+    }
+    
+    @PostMapping("/consumption")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseEntity<MessageResponse> processConsumption(@Valid @RequestBody ConsumptionRequest request) {
+        
+        transactionService.processConsumption(request);
+        
+        MessageResponse response = MessageResponse.builder()
+            .message("Consumo procesado correctamente")
+            .timestamp(LocalDateTime.now())
+            .build();
+        
+        return ResponseEntity.accepted().body(response);
+    }
+}
+```
 
 ---
 
-## 📋 **Funciones SQL Implementadas**
+## DTOs y Requests/Responses
 
-<details>
-<summary><strong>🔄 registrar_transaccion_consumo()</strong></summary>
+### Request DTOs
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateInventoryRequest {
+    
+    @NotNull(message = "Product ID es requerido")
+    @Positive(message = "Product ID debe ser positivo")
+    private Long productId;
+    
+    @NotNull(message = "Stock inicial es requerido")
+    @Min(value = 0, message = "Stock inicial no puede ser negativo")
+    private Integer initialStock;
+}
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class StockAdjustmentRequest {
+    
+    @NotNull(message = "Ajuste es requerido")
+    private Integer adjustment;
+    
+    @NotBlank(message = "Razón del ajuste es requerida")
+    @Size(max = 500, message = "Razón no puede exceder 500 caracteres")
+    private String reason;
+}
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConsumptionRequest {
+    
+    @NotNull(message = "Product ID es requerido")
+    @Positive(message = "Product ID debe ser positivo")
+    private Long productId;
+    
+    @NotNull(message = "Cantidad es requerida")
+    @Positive(message = "Cantidad debe ser positiva")
+    private Integer quantity;
+    
+    @Size(max = 500, message = "Razón no puede exceder 500 caracteres")
+    private String reason;
+}
+```
+
+### Response DTOs
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class InventoryResponse {
+    
+    private Long id;
+    private Long productId;
+    private Integer initialStock;
+    private Integer currentStock;
+    private String status;
+    private List<TransactionResponse> recentTransactions;
+}
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransactionResponse {
+    
+    private Long id;
+    private Long productId;
+    private String type;
+    private Integer quantity;
+    private Integer previousStock;
+    private Integer newStock;
+    private LocalDateTime date;
+    private String reason;
+    private String status;
+}
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransactionSummaryDTO {
+    
+    private Long productId;
+    private Integer totalEntradas;
+    private Integer totalSalidas;
+    private Integer totalAjustes;
+    private Integer totalDanos;
+    private Period period;
+    private Integer stockNetChange;
+    private Double rotationRate;
+}
+```
+
+---
+
+## Manejo de Excepciones
+
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(InventoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleInventoryNotFound(InventoryNotFoundException ex) {
+        return ErrorResponse.builder()
+            .error("INVENTORY_NOT_FOUND")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+    
+    @ExceptionHandler(InsufficientStockException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInsufficientStock(InsufficientStockException ex) {
+        return ErrorResponse.builder()
+            .error("INSUFFICIENT_STOCK")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+    
+    @ExceptionHandler(DuplicateInventoryException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateInventory(DuplicateInventoryException ex) {
+        return ErrorResponse.builder()
+            .error("DUPLICATE_INVENTORY")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleValidationErrors(MethodArgumentNotValidException ex) {
+        
+        Map<String, String> errors = ex.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                FieldError::getDefaultMessage,
+                (existing, replacement) -> existing
+            ));
+        
+        return ValidationErrorResponse.builder()
+            .error("VALIDATION_ERROR")
+            .message("Error de validación en los datos de entrada")
+            .fieldErrors(errors)
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+}
+```
+
+---
+
+## Configuración de Base de Datos
+
+### Triggers Automáticos Implementados
+
+#### 1. Trigger para Registro de Inventario
 
 ```sql
--- ✅ Se ejecuta automáticamente al insertar consumo
--- 🎯 Actualiza stock y crea transacción SALIDA
--- 🔒 Solo para consumos activos (status = 'A')
+CREATE OR REPLACE FUNCTION registrar_transaccion_inventario()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO transactions (
+        inventory_id, product_id, type, quantity,
+        previous_stock, new_stock, reason, status
+    )
+    VALUES (
+        NEW.id_inventory, NEW.product_id, 'ENTRADA',
+        NEW.initial_stock, 0, NEW.current_stock,
+        'Registro de inventario inicial', 'A'
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER trigger_registrar_inventario
+    AFTER INSERT ON inventory_consumption
+    FOR EACH ROW EXECUTE FUNCTION registrar_transaccion_inventario();
+```
+
+#### 2. Trigger para Consumo/Salida
+
+```sql
 CREATE OR REPLACE FUNCTION registrar_transaccion_consumo()
 RETURNS TRIGGER AS $$
 DECLARE
     prev_stock INTEGER;
     inv_id INTEGER;
 BEGIN
-   IF NEW.status = 'A' THEN
-      -- Stock anterior y ID inventario
-      SELECT id_inventory, current_stock INTO inv_id, prev_stock
-      FROM inventory_consumption WHERE product_id = NEW.product_id;
+    IF NEW.status = 'A' THEN
+        -- Obtener stock anterior y ID de inventario
+        SELECT id_inventory, current_stock INTO inv_id, prev_stock
+        FROM inventory_consumption 
+        WHERE product_id = NEW.product_id;
 
-      -- Actualizar inventario
-      UPDATE inventory_consumption
-      SET current_stock = current_stock - NEW.quantity
-      WHERE product_id = NEW.product_id;
+        -- Actualizar stock en inventario
+        UPDATE inventory_consumption
+        SET current_stock = current_stock - NEW.quantity
+        WHERE product_id = NEW.product_id;
 
-      -- Registrar transacción automática
-      INSERT INTO transactions (...)
-      VALUES (...);
-   END IF;
-   RETURN NEW;
+        -- Registrar transacción automática
+        INSERT INTO transactions (
+            inventory_id, product_id, consumption_id, type, quantity,
+            previous_stock, new_stock, reason, status
+        )
+        VALUES (
+            inv_id, NEW.product_id, NEW.id_consumption, 'SALIDA',
+            NEW.quantity, prev_stock, prev_stock - NEW.quantity,
+            COALESCE(NEW.reason, 'Consumo registrado'), 'A'
+        );
+    END IF;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_registrar_consumo
+    AFTER INSERT ON consumption
+    FOR EACH ROW EXECUTE FUNCTION registrar_transaccion_consumo();
 ```
 
-</details>
-
-<details>
-<summary><strong>↩️ devolver_stock()</strong></summary>
+#### 3. Trigger para Reversión de Stock
 
 ```sql
--- ✅ Se ejecuta al cambiar status de consumo a inactivo
--- 🎯 Revierte el stock automáticamente
--- 📊 Marca transacciones como anuladas
-
 CREATE OR REPLACE FUNCTION devolver_stock()
 RETURNS TRIGGER AS $$
 BEGIN
-   IF NEW.status = 'I' AND OLD.status = 'A' THEN
-      -- Devolver stock al inventario
-      UPDATE inventory_consumption
-      SET current_stock = current_stock + OLD.quantity
-      WHERE product_id = OLD.product_id;
+    IF NEW.status = 'I' AND OLD.status = 'A' THEN
+        -- Devolver stock al inventario
+        UPDATE inventory_consumption
+        SET current_stock = current_stock + OLD.quantity
+        WHERE product_id = OLD.product_id;
 
-      -- Marcar transacción como anulada
-      UPDATE transactions SET status = 'I'
-      WHERE consumption_id = OLD.id_consumption;
-   END IF;
-   RETURN NEW;
+        -- Marcar transacción como anulada
+        UPDATE transactions 
+        SET status = 'I'
+        WHERE consumption_id = OLD.id_consumption;
+    END IF;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_devolver_stock
+    AFTER UPDATE ON consumption
+    FOR EACH ROW EXECUTE FUNCTION devolver_stock();
 ```
-
-</details>
-
-<details>
-<summary><strong>📈 registrar_transaccion_inventario()</strong></summary>
-
-```sql
--- ✅ Se ejecuta automáticamente al crear inventario
--- 🎯 Registra transacción ENTRADA inicial
--- 📊 Establece stock base del producto
-
-CREATE OR REPLACE FUNCTION registrar_transaccion_inventario()
-RETURNS TRIGGER AS $$
-BEGIN
-   INSERT INTO transactions (
-      inventory_id, product_id, type, quantity,
-      previous_stock, new_stock, reason, status
-   )
-   VALUES (
-      NEW.id_inventory, NEW.product_id, 'ENTRADA',
-      NEW.initial_stock, 0, NEW.current_stock,
-      'Registro de inventario inicial', 'A'
-   );
-   RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-</details>
 
 ---
 
-## 🚀 **Quick Start**
+## Testing
 
-### 1️⃣ **Configuración de Base de Datos**
+### Tests de Integración
 
-```bash
-# 📋 Crear base de datos
-createdb inventory_system
-
-# 🔧 Ejecutar script SQL
-psql -d inventory_system -f database_setup.sql
+```java
+@SpringBootTest
+@Testcontainers
+class InventoryServiceIntegrationTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("inventory_test")
+            .withUsername("test")
+            .withPassword("test");
+    
+    @Autowired
+    private InventoryService inventoryService;
+    
+    @Autowired
+    private TransactionRepository transactionRepository;
+    
+    @Test
+    void should_CreateInventoryAndGenerateTransaction_When_ValidRequest() {
+        // Given
+        CreateInventoryRequest request = CreateInventoryRequest.builder()
+            .productId(1L)
+            .initialStock(100)
+            .build();
+        
+        // When
+        InventoryConsumption result = inventoryService.createInventory(request);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getProductId()).isEqualTo(1L);
+        assertThat(result.getCurrentStock()).isEqualTo(100);
+        
+        // Verificar que el trigger creó la transacción ENTRADA
+        List<Transaction> transactions = transactionRepository.findByProductIdOrderByDateDesc(1L);
+        assertThat(transactions).hasSize(1);
+        assertThat(transactions.get(0).getType()).isEqualTo(TransactionType.ENTRADA);
+        assertThat(transactions.get(0).getQuantity()).isEqualTo(100);
+    }
+    
+    @Test
+    void should_ThrowException_When_DuplicateInventory() {
+        // Given
+        CreateInventoryRequest request = CreateInventoryRequest.builder()
+            .productId(2L)
+            .initialStock(50)
+            .build();
+        
+        inventoryService.createInventory(request);
+        
+        // When & Then
+        assertThatThrownBy(() -> inventoryService.createInventory(request))
+            .isInstanceOf(DuplicateInventoryException.class)
+            .hasMessageContaining("Ya existe inventario para el producto: 2");
+    }
+}
 ```
 
-### 2️⃣ **Backend Setup**
+---
 
-```bash
-# 📦 Instalar dependencias
-mvn clean install
+## Configuración del Proyecto
 
-# ⚡ Configurar application.yml
+### application.yml
+
+```yaml
 spring:
+  application:
+    name: inventory-management-system
+  
   datasource:
     url: jdbc:postgresql://localhost:5432/inventory_system
-    username: ${DB_USER}
+    username: ${DB_USERNAME:inventory_user}
+    password: ${DB_PASSWORD:inventory_pass}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+  
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    
+logging:
+  level:
+    com.inventory.system: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+```
+
+### pom.xml (dependencias principales)
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.liquibase</groupId>
+        <artifactId>liquibase-core</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>2.2.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>1.5.5.Final</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct-processor</artifactId>
+        <version>1.5.5.Final</version>
+        <scope>provided</scope>
+    </dependency>
+    
+    <!-- Testing -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+---
+
+## Mappers con MapStruct
+
+### InventoryMapper
+
+```java
+@Mapper(componentModel = "spring")
+public interface InventoryMapper {
+    
+    @Mapping(target = "recentTransactions", source = "transactions", qualifiedByName = "mapRecentTransactions")
+    InventoryResponse toResponse(InventoryConsumption inventory);
+    
+    @Named("mapRecentTransactions")
+    default List<TransactionResponse> mapRecentTransactions(List<Transaction> transactions) {
+        return transactions.stream()
+            .sorted((t1, t2) -> t2.getDate().compareTo(t1.getDate()))
+            .limit(5)
+            .map(this::mapTransaction)
+            .collect(Collectors.toList());
+    }
+    
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapTransactionType")
+    @Mapping(target = "status", source = "status", qualifiedByName = "mapStatusType")
+    TransactionResponse mapTransaction(Transaction transaction);
+    
+    @Named("mapTransactionType")
+    default String mapTransactionType(TransactionType type) {
+        return type.name();
+    }
+    
+    @Named("mapStatusType")
+    default String mapStatusType(StatusType status) {
+        return status.name();
+    }
+}
+```
+
+### TransactionMapper
+
+```java
+@Mapper(componentModel = "spring")
+public interface TransactionMapper {
+    
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapTransactionType")
+    @Mapping(target = "status", source = "status", qualifiedByName = "mapStatusType")
+    TransactionResponse toResponse(Transaction transaction);
+    
+    List<TransactionResponse> toResponseList(List<Transaction> transactions);
+    
+    @Named("mapTransactionType")
+    default String mapTransactionType(TransactionType type) {
+        return type.getDescription();
+    }
+    
+    @Named("mapStatusType")
+    default String mapStatusType(StatusType status) {
+        return status == StatusType.ACTIVE ? "Activo" : "Inactivo";
+    }
+}
+```
+
+---
+
+## Configuración de Seguridad
+
+### SecurityConfig
+
+```java
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/api/docs/**", "/api/swagger-ui/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/inventory/**").hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/api/inventory").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/inventory/**").hasRole("ADMIN")
+                .requestMatchers("/api/transactions/**").hasRole("USER")
+                .anyRequest().authenticated()
+            )
+            .httpBasic(Customizer.withDefaults());
+        
+        return http.build();
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails admin = User.builder()
+            .username("admin")
+            .password(passwordEncoder().encode("admin123"))
+            .roles("ADMIN", "USER")
+            .build();
+            
+        UserDetails user = User.builder()
+            .username("user")
+            .password(passwordEncoder().encode("user123"))
+            .roles("USER")
+            .build();
+        
+        return new InMemoryUserDetailsManager(admin, user);
+    }
+}
+```
+
+---
+
+## Métricas y Monitoreo
+
+### CustomMetrics
+
+```java
+@Component
+public class InventoryMetrics {
+    
+    private final Counter inventoryCreatedCounter;
+    private final Counter transactionProcessedCounter;
+    private final Gauge currentTotalStock;
+    private final Timer stockAdjustmentTimer;
+    
+    private final InventoryConsumptionRepository inventoryRepository;
+    
+    public InventoryMetrics(MeterRegistry meterRegistry, 
+                           InventoryConsumptionRepository inventoryRepository) {
+        this.inventoryRepository = inventoryRepository;
+        
+        this.inventoryCreatedCounter = Counter.builder("inventory.created.total")
+            .description("Total inventory items created")
+            .register(meterRegistry);
+            
+        this.transactionProcessedCounter = Counter.builder("transactions.processed.total")
+            .description("Total transactions processed")
+            .tag("type", "all")
+            .register(meterRegistry);
+            
+        this.currentTotalStock = Gauge.builder("inventory.stock.current.total")
+            .description("Current total stock across all products")
+            .register(meterRegistry, this, InventoryMetrics::getCurrentTotalStock);
+            
+        this.stockAdjustmentTimer = Timer.builder("inventory.adjustment.duration")
+            .description("Time taken to process stock adjustments")
+            .register(meterRegistry);
+    }
+    
+    public void incrementInventoryCreated() {
+        inventoryCreatedCounter.increment();
+    }
+    
+    public void incrementTransactionProcessed(TransactionType type) {
+        transactionProcessedCounter.increment(
+            Tags.of("type", type.name().toLowerCase())
+        );
+    }
+    
+    public Timer.Sample startAdjustmentTimer() {
+        return Timer.start(stockAdjustmentTimer);
+    }
+    
+    private Double getCurrentTotalStock() {
+        return inventoryRepository.findAll()
+            .stream()
+            .mapToDouble(InventoryConsumption::getCurrentStock)
+            .sum();
+    }
+}
+```
+
+---
+
+## Documentación con OpenAPI
+
+### OpenAPIConfig
+
+```java
+@Configuration
+public class OpenAPIConfig {
+    
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+            .info(new Info()
+                .title("Sistema de Gestión de Inventario API")
+                .version("1.0.0")
+                .description("API REST para la gestión automatizada de inventario y transacciones")
+                .contact(new Contact()
+                    .name("Equipo de Desarrollo")
+                    .email("dev@inventory-system.com")
+                    .url("https://inventory-system.com")))
+            .servers(Arrays.asList(
+                new Server().url("http://localhost:8080").description("Desarrollo"),
+                new Server().url("https://api.inventory-system.com").description("Producción")
+            ))
+            .components(new Components()
+                .addSecuritySchemes("basicAuth", 
+                    new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("basic")))
+            .addSecurityItem(new SecurityRequirement().addList("basicAuth"));
+    }
+}
+```
+
+---
+
+## Health Checks Personalizados
+
+### DatabaseHealthIndicator
+
+```java
+@Component
+public class DatabaseHealthIndicator implements HealthIndicator {
+    
+    private final DataSource dataSource;
+    
+    @Override
+    public Health health() {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(1)) {
+                
+                // Verificar que las tablas principales existan
+                DatabaseMetaData metaData = connection.getMetaData();
+                ResultSet tables = metaData.getTables(null, null, "inventory_consumption", null);
+                
+                if (tables.next()) {
+                    return Health.up()
+                        .withDetail("database", "PostgreSQL")
+                        .withDetail("status", "Connected")
+                        .withDetail("tables", "All tables available")
+                        .build();
+                } else {
+                    return Health.down()
+                        .withDetail("database", "PostgreSQL")
+                        .withDetail("status", "Connected but missing tables")
+                        .build();
+                }
+            }
+        } catch (SQLException e) {
+            return Health.down()
+                .withDetail("database", "PostgreSQL")
+                .withDetail("status", "Connection failed")
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+        
+        return Health.down()
+            .withDetail("database", "PostgreSQL")
+            .withDetail("status", "Connection timeout")
+            .build();
+    }
+}
+```
+
+### TriggersHealthIndicator
+
+```java
+@Component
+public class TriggersHealthIndicator implements HealthIndicator {
+    
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    
+    @Override
+    public Health health() {
+        try {
+            String sql = """
+                SELECT trigger_name, event_manipulation, action_timing
+                FROM information_schema.triggers 
+                WHERE trigger_schema = 'public'
+                AND trigger_name IN ('trigger_registrar_inventario', 'trigger_registrar_consumo', 'trigger_devolver_stock')
+                """;
+            
+            List<Map<String, Object>> triggers = jdbcTemplate.queryForList(sql);
+            
+            if (triggers.size() >= 3) {
+                return Health.up()
+                    .withDetail("triggers", "All database triggers are active")
+                    .withDetail("count", triggers.size())
+                    .withDetails(triggers.stream()
+                        .collect(Collectors.toMap(
+                            row -> (String) row.get("trigger_name"),
+                            row -> row.get("event_manipulation") + " " + row.get("action_timing")
+                        )))
+                    .build();
+            } else {
+                return Health.down()
+                    .withDetail("triggers", "Some database triggers are missing")
+                    .withDetail("expected", 3)
+                    .withDetail("found", triggers.size())
+                    .build();
+            }
+            
+        } catch (DataAccessException e) {
+            return Health.down()
+                .withDetail("triggers", "Unable to check database triggers")
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+    }
+}
+```
+
+---
+
+## Cache Configuration
+
+### CacheConfig
+
+```java
+@Configuration
+@EnableCaching
+public class CacheConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+            .initialCapacity(100)
+            .maximumSize(1000)
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .recordStats());
+            
+        cacheManager.setCacheNames(Arrays.asList("inventory", "transactions", "lowStock"));
+        return cacheManager;
+    }
+}
+```
+
+### Uso de Cache en los Servicios
+
+```java
+@Service
+@Transactional
+public class InventoryService {
+    
+    // ... otros métodos ...
+    
+    @Cacheable(value = "inventory", key = "#productId")
+    @Transactional(readOnly = true)
+    public InventoryConsumption getByProductId(Long productId) {
+        return inventoryRepository.findByProductId(productId)
+            .orElseThrow(() -> new InventoryNotFoundException("Inventario no encontrado para producto: " + productId));
+    }
+    
+    @CacheEvict(value = "inventory", key = "#result.productId")
+    public InventoryConsumption adjustStock(Long productId, StockAdjustmentRequest request) {
+        // ... implementación del ajuste ...
+        return updated;
+    }
+    
+    @Cacheable(value = "lowStock", key = "#threshold")
+    @Transactional(readOnly = true)
+    public List<InventoryConsumption> getLowStockProducts(Integer threshold) {
+        return inventoryRepository.findLowStockProducts(threshold != null ? threshold : 10);
+    }
+}
+```
+
+---
+
+## Utilidades y Helpers
+
+### AuditUtils
+
+```java
+@Component
+public class AuditUtils {
+    
+    public static String generateTransactionReason(TransactionType type, String customReason) {
+        if (StringUtils.hasText(customReason)) {
+            return customReason;
+        }
+        
+        return switch (type) {
+            case ENTRADA -> "Entrada automática de mercancía";
+            case SALIDA -> "Salida por consumo/venta";
+            case AJUSTE -> "Ajuste de inventario";
+            case DANO -> "Producto dañado o vencido";
+        };
+    }
+    
+    public static boolean isStockMovementValid(Integer currentStock, Integer movement, TransactionType type) {
+        return switch (type) {
+            case ENTRADA, AJUSTE -> true; // Siempre válido para entradas
+            case SALIDA, DANO -> currentStock >= Math.abs(movement); // Verificar stock suficiente
+        };
+    }
+    
+    public static Integer calculateNewStock(Integer currentStock, Integer movement, TransactionType type) {
+        return switch (type) {
+            case ENTRADA -> currentStock + movement;
+            case SALIDA, DANO -> currentStock - movement;
+            case AJUSTE -> currentStock + movement; // El movimento puede ser positivo o negativo
+        };
+    }
+}
+```
+
+### ValidationUtils
+
+```java
+@Component
+public class ValidationUtils {
+    
+    public static void validateStockOperation(InventoryConsumption inventory, 
+                                            Integer quantity, 
+                                            TransactionType type) {
+        
+        Objects.requireNonNull(inventory, "Inventario no puede ser nulo");
+        Objects.requireNonNull(quantity, "Cantidad no puede ser nula");
+        Objects.requireNonNull(type, "Tipo de transacción no puede ser nulo");
+        
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
+        }
+        
+        if (inventory.getStatus() != StatusType.ACTIVE) {
+            throw new IllegalStateException("El inventario debe estar activo para realizar operaciones");
+        }
+        
+        // Validar stock suficiente para operaciones de salida
+        if ((type == TransactionType.SALIDA || type == TransactionType.DANO) 
+            && inventory.getCurrentStock() < quantity) {
+            throw new InsufficientStockException(
+                String.format("Stock insuficiente. Disponible: %d, Requerido: %d", 
+                    inventory.getCurrentStock(), quantity));
+        }
+    }
+    
+    public static void validateProductId(Long productId) {
+        if (productId == null || productId <= 0) {
+            throw new IllegalArgumentException("Product ID debe ser un número positivo");
+        }
+    }
+    
+    public static void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Las fechas de inicio y fin son requeridas");
+        }
+        
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("La fecha de inicio debe ser anterior a la fecha de fin");
+        }
+        
+        if (startDate.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser futura");
+        }
+    }
+}
+```
+
+---
+
+## Perfiles de Configuración
+
+### application-dev.yml
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_dev
+    username: dev_user
+    password: dev_pass
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  
+  liquibase:
+    contexts: dev
+    
+logging:
+  level:
+    com.inventory.system: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: DEBUG
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+```
+
+### application-prod.yml
+
+```yaml
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-
-# 🚀 Ejecutar aplicación
-mvn spring-boot:run
-```
-
-### 3️⃣ **Frontend Setup**
-
-```bash
-# 📦 Instalar dependencias
-npm install
-
-# 🎨 Configurar environment
-export const environment = {
-  apiUrl: 'http://localhost:8080/api'
-};
-
-# 🚀 Ejecutar aplicación
-ng serve
-```
-
----
-
-## 📊 **API Endpoints Disponibles**
-
-<div align="center">
-
-### 🎯 **Inventario Endpoints**
-
-</div>
-
-| Método | Endpoint | Descripción | Status |
-|--------|----------|-------------|---------|
-| `GET` | `/api/inventory` | 📋 Listar inventario | ✅ Activo |
-| `POST` | `/api/inventory` | 📦 Crear inventario | ✅ Activo |
-| `PUT` | `/api/inventory/{id}` | 🔄 Actualizar stock | ✅ Activo |
-| `DELETE` | `/api/inventory/{id}` | ❌ Eliminar inventario | ✅ Activo |
-
-<div align="center">
-
-### 🔄 **Transacciones Endpoints**
-
-</div>
-
-| Método | Endpoint | Descripción | Status |
-|--------|----------|-------------|---------|
-| `GET` | `/api/transactions` | 📊 Historial completo | ✅ Activo |
-| `GET` | `/api/transactions/filter` | 🔍 Filtros avanzados | ✅ Activo |
-| `GET` | `/api/transactions/report` | 📄 Generar PDF | ✅ Activo |
-
----
-
-## 🎯 **Casos de Uso Implementados**
-
-<table>
-<tr>
-<td width="50%">
-
-### 📦 **Registro de Inventario**
-```mermaid
-graph TD
-    A[👤 Usuario crea inventario] --> B[📦 INSERT inventory_consumption]
-    B --> C[🔔 Trigger automático]
-    C --> D[📊 Transacción ENTRADA]
-    D --> E[✅ Sistema listo para consumos]
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 600000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  
+  liquibase:
+    contexts: prod
     
-    style A fill:#e3f2fd
-    style E fill:#e8f5e8
-```
-
-</td>
-<td width="50%">
-
-### 🔄 **Procesamiento de Consumo**
-```mermaid
-graph TD
-    A[👤 Usuario registra consumo] --> B[📉 INSERT consumption]
-    B --> C[🔔 Trigger consumo]
-    C --> D[📊 Actualiza stock]
-    D --> E[📝 Transacción SALIDA]
-    E --> F[✅ Auditoría completa]
+logging:
+  level:
+    com.inventory.system: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+  
+  file:
+    name: /var/log/inventory-system.log
     
-    style A fill:#fff3e0
-    style F fill:#e8f5e8
-```
-
-</td>
-</tr>
-</table>
-
----
-
-## 🛠️ **Validaciones y Constraints**
-
-<div align="center">
-
-### 🔒 **Sistema de Validaciones Robusto**
-
-</div>
-
-| Validación | Tipo | Descripción | Implementado |
-|------------|------|-------------|--------------|
-| **Stock ≥ 0** | `CHECK` | Evita stock negativo | ✅ |
-| **Cantidad > 0** | `CHECK` | Solo cantidades válidas | ✅ |
-| **Status válido** | `CHECK` | Solo 'A' o 'I' permitidos | ✅ |
-| **Tipo transacción** | `CHECK` | Solo tipos definidos | ✅ |
-| **Integridad referencial** | `FK CASCADE` | Mantiene consistencia | ✅ |
-
----
-
-## 📈 **Métricas y Monitoreo**
-
-<div align="center">
-
-### 🎯 **Vista de Transacciones Optimizada**
-
-</div>
-
-```sql
--- 🚀 Vista SQL optimizada para reportes
-CREATE OR REPLACE VIEW vw_transactions AS
-SELECT 
-    t.id_transaction,
-    t.type,
-    t.quantity,
-    t.previous_stock,
-    t.new_stock,
-    t.date,
-    t.reason,
-    ic.product_id
-FROM transactions t
-JOIN inventory_consumption ic ON t.inventory_id = ic.id_inventory
-ORDER BY t.date DESC;
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
 ```
 
 ---
 
-## 🎨 **Screenshots del Sistema**
+## Scripts de Deployment
 
-<div align="center">
+### docker-compose.yml
 
-### 📊 **Dashboard Principal**
-*[Screenshot placeholder - Dashboard con métricas en tiempo real]*
+```yaml
+version: '3.8'
 
-### 📦 **Gestión de Inventario**
-*[Screenshot placeholder - Interfaz de inventario con filtros]*
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: inventory_system
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: inventory_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - inventory-network
 
-### 🔄 **Historial de Transacciones**
-*[Screenshot placeholder - Lista de transacciones con paginación]*
+  inventory-api:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATABASE_URL: jdbc:postgresql://postgres:5432/inventory_system
+      DB_USERNAME: inventory_user
+      DB_PASSWORD: inventory_pass
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - inventory-network
+    restart: unless-stopped
 
-</div>
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - inventory-network
 
----
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - inventory-network
 
-## 🔧 **Troubleshooting**
+volumes:
+  postgres_data:
+  grafana_data:
 
-<details>
-<summary><strong>❗ Error: Stock negativo</strong></summary>
-
-**Problema:** `ERROR: new row for relation violates check constraint`
-
-**Solución:**
-```sql
--- Verificar stock disponible antes del consumo
-SELECT current_stock FROM inventory_consumption WHERE product_id = X;
+networks:
+  inventory-network:
+    driver: bridge
 ```
 
-</details>
+### Dockerfile
 
-<details>
-<summary><strong>⚠️ Trigger no ejecuta</strong></summary>
+```dockerfile
+FROM openjdk:17-jdk-slim
 
-**Problema:** Las transacciones no se crean automáticamente
+WORKDIR /app
 
-**Solución:**
-```sql
--- Verificar que los triggers estén activos
-SELECT * FROM information_schema.triggers;
+COPY target/inventory-system-*.jar app.jar
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 ```
 
-</details>
-
 ---
 
-## 📝 **Roadmap Futuro**
+## Conclusión
 
-- [ ] 🔔 **Sistema de Notificaciones**
-- [ ] 📊 **Dashboard Analytics Avanzado**
-- [ ] 🔍 **Búsqueda Full-Text**
-- [ ] 🌐 **API GraphQL**
-- [ ] 📱 **App Mobile**
-- [ ] 🤖 **Predicción de Demanda con IA**
+Este sistema de inventario backend proporciona:
 
----
+### Características Principales:
+- **Automatización Completa**: Triggers de base de datos manejan automáticamente las transacciones
+- **Validaciones Robustas**: Múltiples capas de validación para garantizar integridad de datos
+- **API REST Completa**: Endpoints bien documentados con OpenAPI/Swagger
+- **Manejo de Excepciones**: Sistema centralizado de manejo de errores
+- **Métricas y Monitoreo**: Integración con Micrometer y actuator endpoints
+- **Testing Comprehensivo**: Tests de integración con Testcontainers
+- **Cache Inteligente**: Sistema de cache para optimizar consultas frecuentes
+- **Seguridad**: Configuración básica con Spring Security
+- **Observabilidad**: Health checks personalizados y métricas de negocio
 
-## 👥 **Contribuciones**
+### Patrones Implementados:
+- Repository Pattern con Spring Data JPA
+- Service Layer con transacciones declarativas
+- DTO Pattern con MapStruct para mappeo automático
+- Exception Handler centralizado
+- Configuration Pattern para diferentes entornos
 
-<div align="center">
+### Escalabilidad:
+- Preparado para microservicios
+- Base de datos optimizada con índices y constraints
+- Sistema de cache para mejorar performance
+- Métricas para monitoreo en producción
+- Docker ready para despliegue en containers
 
-¿Quieres contribuir? ¡Genial! 🎉
-
-<a href="#" style="text-decoration: none;">
-  <img src="https://img.shields.io/badge/Contribuir-Bienvenido-brightgreen?style=for-the-badge&logo=github" alt="Contribuir">
-</a>
-
-1. 🍴 **Fork** el repositorio
-2. 🌿 **Crea** tu branch de feature
-3. 💾 **Commit** tus cambios
-4. 📤 **Push** al branch
-5. 🎯 **Abre** un Pull Request
-
-</div>
-
----
-
-<div align="center">
-
-## 💎 **¿Te gusta el proyecto?**
-
-<a href="#" style="text-decoration: none;">
-  <img src="https://img.shields.io/badge/⭐-Star_en_GitHub-yellow?style=for-the-badge&logo=github" alt="Star">
-</a>
-<a href="#" style="text-decoration: none;">
-  <img src="https://img.shields.io/badge/🚀-Fork_el_Repo-blue?style=for-the-badge&logo=github" alt="Fork">
-</a>
-<a href="#" style="text-decoration: none;">
-  <img src="https://img.shields.io/badge/💬-Únete_a_Discord-purple?style=for-the-badge&logo=discord" alt="Discord">
-</a>
-
----
-
-### 🎯 **Sistema de Inventario Premium**
-*Desarrollado con ❤️ para la excelencia empresarial*
-
-**[⬆ Volver arriba](#-sistema-de-gestión-de-inventario--transacciones)**
-
-</div>
+El sistema está diseñado para ser mantenible, testeable y escalable, siguiendo las mejores prácticas de desarrollo con Spring Boot.
