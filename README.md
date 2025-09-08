@@ -1,361 +1,668 @@
-# Sistema de Gestión de Inventario y Consumo
+<div align="center">
 
-## 📋 Descripción General
+# 🚀 Sistema de Gestión de Inventario & Transacciones
 
-El Sistema de Gestión de Inventario y Consumo es una aplicación empresarial desarrollada para optimizar el control y seguimiento de productos en múltiples ubicaciones. La solución permite gestionar de manera integral el inventario, registrar consumos por hogar/ubicación y mantener un historial completo de transacciones.
+<img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge&logo=semantic-release" alt="Version">
+<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot">
+<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
+<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
 
-## 🏗️ Arquitectura del Sistema
+### 💎 **Sistema Enterprise de Control Automatizado**
+*Gestión inteligente de inventario con transacciones automáticas y auditoría completa*
 
-### Stack Tecnológico
-- **Backend**: Spring Boot 3.x
-- **Frontend**: Angular 17+
-- **Base de Datos**: PostgreSQL 15+
-- **Documentación**: OpenAPI/Swagger
-- **Reportes**: Generación de PDF
+[🎯 Demo Live](#) • [📚 Documentación](#) • [🐛 Issues](#) • [💬 Discussions](#)
 
-### Arquitectura de Capas
+</div>
+
+---
+
+## 🌟 **Características Premium**
+
+<table>
+<tr>
+<td width="50%">
+
+### 🎯 **Inventario Inteligente**
+- ✅ **Control de Stock Automático**
+- ✅ **Validaciones en Tiempo Real**
+- ✅ **Alertas de Stock Crítico**
+- ✅ **Auditoría Completa 360°**
+
+</td>
+<td width="50%">
+
+### 🔄 **Transacciones Avanzadas**
+- ✅ **Sistema de Triggers Automáticos**
+- ✅ **4 Tipos de Movimientos**
+- ✅ **Trazabilidad Total**
+- ✅ **Reversión Inteligente**
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ **Arquitectura del Sistema**
+
+```mermaid
+graph TB
+    subgraph "🎨 Frontend Layer"
+        A[Angular 17+ UI]
+        B[Reactive Components]
+        C[HTTP Interceptors]
+    end
+    
+    subgraph "⚡ Backend Layer"
+        D[Spring Boot API]
+        E[JPA Repositories]
+        F[Business Logic]
+    end
+    
+    subgraph "🗄️ Database Layer"
+        G[PostgreSQL]
+        H[Automated Triggers]
+        I[Smart Functions]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
+    D --> G
+    E --> H
+    F --> I
+    
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style G fill:#e8f5e8
 ```
-┌─────────────────────────────────────┐
-│           Frontend (Angular)        │
-│  - Componentes                      │
-│  - Servicios                        │
-│  - Guards & Interceptors            │
-└─────────────────────────────────────┘
-                    │
-                HTTP/REST
-                    │
-┌─────────────────────────────────────┐
-│         Backend (Spring Boot)       │
-│  - Controllers                      │
-│  - Services                         │
-│  - Repositories                     │
-│  - DTOs & Entities                  │
-└─────────────────────────────────────┘
-                    │
-                 JPA/JDBC
-                    │
-┌─────────────────────────────────────┐
-│        Base de Datos (PostgreSQL)   │
-│  - Tablas                           │
-│  - Triggers                         │
-│  - Funciones                        │
-│  - Vistas                           │
-└─────────────────────────────────────┘
-```
 
-## 🗃️ Modelo de Base de Datos
+---
 
-### Diagrama de Entidades
+## 📊 **Modelo de Datos Inteligente**
+
+### 🎯 **Entidades Principales**
+
+<div align="center">
 
 ```mermaid
 erDiagram
-    home ||--o{ consumption : "tiene"
-    inventory_consumption ||--o{ transactions : "genera"
-    consumption ||--o{ transactions : "origina"
+    INVENTORY_CONSUMPTION ||--o{ TRANSACTIONS : generates
+    HOME ||--o{ CONSUMPTION : has
+    CONSUMPTION ||--o{ TRANSACTIONS : originates
     
-    home {
-        SERIAL id_home PK
-        VARCHAR names
-        VARCHAR address
-        CHAR status
+    INVENTORY_CONSUMPTION {
+        serial id_inventory PK "🔑"
+        bigint product_id "📦"
+        integer initial_stock "📈"
+        integer current_stock "📊"
+        char status "🔄"
     }
     
-    inventory_consumption {
-        SERIAL id_inventory PK
-        BIGINT product_id
-        INTEGER initial_stock
-        INTEGER current_stock
-        CHAR status
+    TRANSACTIONS {
+        serial id_transaction PK "🔑"
+        varchar type "🏷️"
+        integer quantity "📊"
+        integer previous_stock "📈"
+        integer new_stock "📉"
+        timestamp date "📅"
+        text reason "📝"
     }
     
-    consumption {
-        SERIAL id_consumption PK
-        DATE date
-        INTEGER id_home FK
-        BIGINT product_id
-        INTEGER quantity
-        INTEGER weight
-        INTEGER price
-        INTEGER salevalue
-        CHAR status
-    }
-    
-    transactions {
-        SERIAL id_transaction PK
-        INTEGER inventory_id FK
-        INTEGER product_id
-        VARCHAR type
-        INTEGER quantity
-        INTEGER previous_stock
-        INTEGER new_stock
-        TEXT reason
-        TIMESTAMP date
-        INTEGER user_id
-        CHAR status
-        INTEGER consumption_id FK
+    CONSUMPTION {
+        serial id_consumption PK "🔑"
+        date consumption_date "📅"
+        integer quantity "📊"
+        integer price "💰"
+        char status "🔄"
     }
 ```
 
-### Descripción de Tablas
+</div>
 
-#### `home`
-Gestiona las ubicaciones o hogares donde se realiza el consumo.
+---
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id_home` | SERIAL | Identificador único del hogar |
-| `names` | VARCHAR(50) | Nombre del hogar |
-| `address` | VARCHAR(100) | Dirección del hogar |
-| `status` | CHAR(1) | Estado: 'A' (Activo) o 'I' (Inactivo) |
+## 🚀 **Funcionalidades Core Implementadas**
 
-#### `inventory_consumption`
-Controla el inventario disponible de productos.
+<div align="center">
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id_inventory` | SERIAL | Identificador único del inventario |
-| `product_id` | BIGINT | Identificador del producto |
-| `initial_stock` | INTEGER | Stock inicial registrado |
-| `current_stock` | INTEGER | Stock actual disponible |
-| `status` | CHAR(1) | Estado: 'A' (Activo) o 'I' (Inactivo) |
+### 🎯 **GESTIÓN DE INVENTARIO**
 
-#### `consumption`
-Registra los consumos realizados por cada hogar.
+</div>
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id_consumption` | SERIAL | Identificador único del consumo |
-| `date` | DATE | Fecha del consumo |
-| `id_home` | INTEGER | Referencia al hogar |
-| `product_id` | BIGINT | Identificador del producto consumido |
-| `quantity` | INTEGER | Cantidad consumida |
-| `weight` | INTEGER | Peso del producto |
-| `price` | INTEGER | Precio unitario |
-| `salevalue` | INTEGER | Valor total de la venta |
-| `status` | CHAR(1) | Estado: 'A' (Activo) o 'I' (Anulado) |
+<table>
+<tr>
+<td width="25%" align="center">
 
-#### `transactions`
-Auditoría completa de movimientos de inventario.
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id_transaction` | SERIAL | Identificador único de la transacción |
-| `inventory_id` | INTEGER | Referencia al inventario |
-| `product_id` | INTEGER | Identificador del producto |
-| `type` | VARCHAR(20) | Tipo: ENTRADA, SALIDA, AJUSTE, DAÑO |
-| `quantity` | INTEGER | Cantidad del movimiento |
-| `previous_stock` | INTEGER | Stock anterior |
-| `new_stock` | INTEGER | Stock resultante |
-| `reason` | TEXT | Motivo del movimiento |
-| `date` | TIMESTAMP | Fecha y hora de la transacción |
-| `user_id` | INTEGER | Usuario que realizó la transacción |
-| `status` | CHAR(1) | Estado: 'A' (Activo) o 'I' (Inactivo) |
-| `consumption_id` | INTEGER | Referencia al consumo (si aplica) |
-
-## 🔧 Funcionalidades del Sistema
-
-### 1. Gestión de Inventario
-- **Registro de productos**: CRUD completo para productos
-- **Control de stock**: Seguimiento automático de existencias
-- **Alertas de stock mínimo**: Notificaciones de reposición
-- **Ajustes de inventario**: Correcciones manuales con justificación
-
-### 2. Registro de Consumos
-- **Consumo por hogar**: Asignación de consumos a ubicaciones específicas
-- **Cálculo automático**: Actualización instantánea del inventario
-- **Anulación de consumos**: Reversión automática del stock
-- **Validaciones**: Control de stock disponible antes del consumo
-
-### 3. Sistema de Transacciones
-- **Auditoría completa**: Registro automático de todos los movimientos
-- **Tipos de transacciones**:
-  - `ENTRADA`: Ingreso de mercancía
-  - `SALIDA`: Consumo o venta
-  - `AJUSTE`: Correcciones de inventario
-  - `DAÑO`: Productos dañados o vencidos
-- **Trazabilidad**: Historial completo de cambios
-
-### 4. Reportes y Analytics
-- **Reportes en PDF**: Generación automática de documentos
-- **Filtros avanzados**: Por fecha, tipo de movimiento, producto, hogar
-- **Dashboards**: Visualización de métricas clave
-- **Exportación de datos**: Formato CSV, Excel, PDF
-
-## 🚀 Funciones y Triggers Automáticos
-
-### Triggers Implementados
-
-#### `trigger_registrar_consumo`
+### 📦 **Registro**
 ```sql
--- Se ejecuta DESPUÉS de insertar un consumo
--- Función: registrar_transaccion_consumo()
+INSERT INTO inventory_consumption
+VALUES (product_id, stock, stock, 'A');
 ```
-- **Propósito**: Actualiza automáticamente el inventario al registrar un consumo
-- **Acción**: Crea una transacción tipo SALIDA y reduce el stock actual
+**✅ Automático**  
+**✅ Validado**
 
-#### `trigger_devolver_stock`
+</td>
+<td width="25%" align="center">
+
+### 📊 **Control Stock**
 ```sql
--- Se ejecuta DESPUÉS de actualizar un consumo
--- Función: devolver_stock()
+UPDATE inventory_consumption
+SET current_stock = new_value;
 ```
-- **Propósito**: Revierte el stock cuando se anula un consumo
-- **Acción**: Restaura las cantidades al inventario y marca la transacción como inactiva
+**✅ Tiempo Real**  
+**✅ Triggers**
 
-#### `trigger_registrar_inventario`
+</td>
+<td width="25%" align="center">
+
+### 🔄 **Actualización**
 ```sql
--- Se ejecuta DESPUÉS de insertar inventario
--- Función: registrar_transaccion_inventario()
+-- Trigger automático
+-- registra ENTRADA
 ```
-- **Propósito**: Registra automáticamente el inventario inicial
-- **Acción**: Crea una transacción tipo ENTRADA con el stock inicial
+**✅ Automático**  
+**✅ Auditado**
 
-#### `trigger_actualizacion_inventario`
+</td>
+<td width="25%" align="center">
+
+### 📈 **Reportes**
 ```sql
--- Se ejecuta DESPUÉS de actualizar inventario
--- Función: registrar_actualizacion_inventario()
+SELECT * FROM vw_transactions
+ORDER BY date DESC;
 ```
-- **Propósito**: Audita los incrementos de stock
-- **Acción**: Registra transacciones ENTRADA cuando aumenta el inventario
+**✅ Vista SQL**  
+**✅ Optimizada**
 
-## 📊 Vistas del Sistema
+</td>
+</tr>
+</table>
 
-### `vw_transactions`
-Vista optimizada para consulta de transacciones con información consolidada:
+---
+
+<div align="center">
+
+### 🔄 **SISTEMA DE TRANSACCIONES**
+
+</div>
+
+<table>
+<tr>
+<td width="25%" align="center">
+
+### 📈 **ENTRADA**
+<div style="background: linear-gradient(45deg, #4CAF50, #8BC34A); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
+Stock Inicial<br>
+Reposiciones<br>
+Ajustes +
+</div>
+
+</td>
+<td width="25%" align="center">
+
+### 📉 **SALIDA**
+<div style="background: linear-gradient(45deg, #F44336, #FF5722); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
+Consumos<br>
+Ventas<br>
+Distribución
+</div>
+
+</td>
+<td width="25%" align="center">
+
+### ⚖️ **AJUSTE**
+<div style="background: linear-gradient(45deg, #FF9800, #FFC107); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
+Correcciones<br>
+Inventario Físico<br>
+Calibración
+</div>
+
+</td>
+<td width="25%" align="center">
+
+### 💥 **DAÑO**
+<div style="background: linear-gradient(45deg, #9C27B0, #E91E63); padding: 20px; border-radius: 10px; color: white; font-weight: bold;">
+Productos Dañados<br>
+Vencimientos<br>
+Pérdidas
+</div>
+
+</td>
+</tr>
+</table>
+
+---
+
+## ⚡ **Sistema de Triggers Automáticos**
+
+<div align="center">
+
+### 🎯 **Flujo de Automatización**
+
+</div>
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 Usuario
+    participant I as 📦 Inventario
+    participant T as 🔄 Triggers
+    participant TX as 📊 Transacciones
+    
+    Note over U,TX: 🚀 Flujo de Registro Automático
+    
+    U->>I: 📝 Registra Inventario
+    I->>T: 🔔 trigger_registrar_inventario
+    T->>TX: ✅ Crea ENTRADA automática
+    TX-->>U: 📈 Stock actualizado
+    
+    Note over U,TX: 🔄 Flujo de Consumo
+    
+    U->>I: 📉 Registra Consumo
+    I->>T: 🔔 trigger_registrar_consumo
+    T->>TX: ✅ Crea SALIDA automática
+    T->>I: 📊 Actualiza current_stock
+    TX-->>U: 🎯 Transacción completa
+    
+    Note over U,TX: ↩️ Flujo de Reversión
+    
+    U->>I: ❌ Anula Consumo
+    I->>T: 🔔 trigger_devolver_stock
+    T->>I: 📈 Restaura stock
+    T->>TX: ❌ Marca transacción inactiva
+    TX-->>U: ✅ Reversión completa
+```
+
+---
+
+## 🎨 **Stack Tecnológico Premium**
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="33%">
+
+### 🎯 **Frontend**
+<img src="https://img.shields.io/badge/Angular-17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"><br>
+<img src="https://img.shields.io/badge/TypeScript-5.0+-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"><br>
+<img src="https://img.shields.io/badge/RxJS-7.8+-B7178C?style=for-the-badge&logo=reactivex&logoColor=white" alt="RxJS">
+
+</td>
+<td align="center" width="33%">
+
+### ⚡ **Backend**
+<img src="https://img.shields.io/badge/Spring_Boot-3.2+-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot"><br>
+<img src="https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=java&logoColor=white" alt="Java"><br>
+<img src="https://img.shields.io/badge/JPA-Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white" alt="JPA">
+
+</td>
+<td align="center" width="33%">
+
+### 🗄️ **Database**
+<img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"><br>
+<img src="https://img.shields.io/badge/Triggers-Automated-FF6B6B?style=for-the-badge&logo=database&logoColor=white" alt="Triggers"><br>
+<img src="https://img.shields.io/badge/Functions-PL/pgSQL-4ECDC4?style=for-the-badge&logo=postgresql&logoColor=white" alt="Functions">
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## 📋 **Funciones SQL Implementadas**
+
+<details>
+<summary><strong>🔄 registrar_transaccion_consumo()</strong></summary>
+
 ```sql
+-- ✅ Se ejecuta automáticamente al insertar consumo
+-- 🎯 Actualiza stock y crea transacción SALIDA
+-- 🔒 Solo para consumos activos (status = 'A')
+
+CREATE OR REPLACE FUNCTION registrar_transaccion_consumo()
+RETURNS TRIGGER AS $$
+DECLARE
+    prev_stock INTEGER;
+    inv_id INTEGER;
+BEGIN
+   IF NEW.status = 'A' THEN
+      -- Stock anterior y ID inventario
+      SELECT id_inventory, current_stock INTO inv_id, prev_stock
+      FROM inventory_consumption WHERE product_id = NEW.product_id;
+
+      -- Actualizar inventario
+      UPDATE inventory_consumption
+      SET current_stock = current_stock - NEW.quantity
+      WHERE product_id = NEW.product_id;
+
+      -- Registrar transacción automática
+      INSERT INTO transactions (...)
+      VALUES (...);
+   END IF;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+</details>
+
+<details>
+<summary><strong>↩️ devolver_stock()</strong></summary>
+
+```sql
+-- ✅ Se ejecuta al cambiar status de consumo a inactivo
+-- 🎯 Revierte el stock automáticamente
+-- 📊 Marca transacciones como anuladas
+
+CREATE OR REPLACE FUNCTION devolver_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+   IF NEW.status = 'I' AND OLD.status = 'A' THEN
+      -- Devolver stock al inventario
+      UPDATE inventory_consumption
+      SET current_stock = current_stock + OLD.quantity
+      WHERE product_id = OLD.product_id;
+
+      -- Marcar transacción como anulada
+      UPDATE transactions SET status = 'I'
+      WHERE consumption_id = OLD.id_consumption;
+   END IF;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+</details>
+
+<details>
+<summary><strong>📈 registrar_transaccion_inventario()</strong></summary>
+
+```sql
+-- ✅ Se ejecuta automáticamente al crear inventario
+-- 🎯 Registra transacción ENTRADA inicial
+-- 📊 Establece stock base del producto
+
+CREATE OR REPLACE FUNCTION registrar_transaccion_inventario()
+RETURNS TRIGGER AS $$
+BEGIN
+   INSERT INTO transactions (
+      inventory_id, product_id, type, quantity,
+      previous_stock, new_stock, reason, status
+   )
+   VALUES (
+      NEW.id_inventory, NEW.product_id, 'ENTRADA',
+      NEW.initial_stock, 0, NEW.current_stock,
+      'Registro de inventario inicial', 'A'
+   );
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+</details>
+
+---
+
+## 🚀 **Quick Start**
+
+### 1️⃣ **Configuración de Base de Datos**
+
+```bash
+# 📋 Crear base de datos
+createdb inventory_system
+
+# 🔧 Ejecutar script SQL
+psql -d inventory_system -f database_setup.sql
+```
+
+### 2️⃣ **Backend Setup**
+
+```bash
+# 📦 Instalar dependencias
+mvn clean install
+
+# ⚡ Configurar application.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_system
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+# 🚀 Ejecutar aplicación
+mvn spring-boot:run
+```
+
+### 3️⃣ **Frontend Setup**
+
+```bash
+# 📦 Instalar dependencias
+npm install
+
+# 🎨 Configurar environment
+export const environment = {
+  apiUrl: 'http://localhost:8080/api'
+};
+
+# 🚀 Ejecutar aplicación
+ng serve
+```
+
+---
+
+## 📊 **API Endpoints Disponibles**
+
+<div align="center">
+
+### 🎯 **Inventario Endpoints**
+
+</div>
+
+| Método | Endpoint | Descripción | Status |
+|--------|----------|-------------|---------|
+| `GET` | `/api/inventory` | 📋 Listar inventario | ✅ Activo |
+| `POST` | `/api/inventory` | 📦 Crear inventario | ✅ Activo |
+| `PUT` | `/api/inventory/{id}` | 🔄 Actualizar stock | ✅ Activo |
+| `DELETE` | `/api/inventory/{id}` | ❌ Eliminar inventario | ✅ Activo |
+
+<div align="center">
+
+### 🔄 **Transacciones Endpoints**
+
+</div>
+
+| Método | Endpoint | Descripción | Status |
+|--------|----------|-------------|---------|
+| `GET` | `/api/transactions` | 📊 Historial completo | ✅ Activo |
+| `GET` | `/api/transactions/filter` | 🔍 Filtros avanzados | ✅ Activo |
+| `GET` | `/api/transactions/report` | 📄 Generar PDF | ✅ Activo |
+
+---
+
+## 🎯 **Casos de Uso Implementados**
+
+<table>
+<tr>
+<td width="50%">
+
+### 📦 **Registro de Inventario**
+```mermaid
+graph TD
+    A[👤 Usuario crea inventario] --> B[📦 INSERT inventory_consumption]
+    B --> C[🔔 Trigger automático]
+    C --> D[📊 Transacción ENTRADA]
+    D --> E[✅ Sistema listo para consumos]
+    
+    style A fill:#e3f2fd
+    style E fill:#e8f5e8
+```
+
+</td>
+<td width="50%">
+
+### 🔄 **Procesamiento de Consumo**
+```mermaid
+graph TD
+    A[👤 Usuario registra consumo] --> B[📉 INSERT consumption]
+    B --> C[🔔 Trigger consumo]
+    C --> D[📊 Actualiza stock]
+    D --> E[📝 Transacción SALIDA]
+    E --> F[✅ Auditoría completa]
+    
+    style A fill:#fff3e0
+    style F fill:#e8f5e8
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🛠️ **Validaciones y Constraints**
+
+<div align="center">
+
+### 🔒 **Sistema de Validaciones Robusto**
+
+</div>
+
+| Validación | Tipo | Descripción | Implementado |
+|------------|------|-------------|--------------|
+| **Stock ≥ 0** | `CHECK` | Evita stock negativo | ✅ |
+| **Cantidad > 0** | `CHECK` | Solo cantidades válidas | ✅ |
+| **Status válido** | `CHECK` | Solo 'A' o 'I' permitidos | ✅ |
+| **Tipo transacción** | `CHECK` | Solo tipos definidos | ✅ |
+| **Integridad referencial** | `FK CASCADE` | Mantiene consistencia | ✅ |
+
+---
+
+## 📈 **Métricas y Monitoreo**
+
+<div align="center">
+
+### 🎯 **Vista de Transacciones Optimizada**
+
+</div>
+
+```sql
+-- 🚀 Vista SQL optimizada para reportes
 CREATE OR REPLACE VIEW vw_transactions AS
 SELECT 
     t.id_transaction,
-    t.inventory_id,
-    t.product_id AS transaction_product_id,
     t.type,
     t.quantity,
     t.previous_stock,
     t.new_stock,
-    t.reason,
     t.date,
-    t.user_id,
-    t.status,
-    t.consumption_id,
-    ic.product_id AS inventory_product_id
+    t.reason,
+    ic.product_id
 FROM transactions t
 JOIN inventory_consumption ic ON t.inventory_id = ic.id_inventory
 ORDER BY t.date DESC;
 ```
 
-## 🔒 Seguridad y Validaciones
+---
 
-### Constraints de Base de Datos
-- **Stock no negativo**: `CHECK (current_stock >= 0)`
-- **Cantidades positivas**: `CHECK (quantity > 0)`
-- **Estados válidos**: `CHECK (status IN ('A', 'I'))`
-- **Tipos de transacción válidos**: `CHECK (type IN ('ENTRADA', 'SALIDA', 'AJUSTE', 'DAÑO'))`
+## 🎨 **Screenshots del Sistema**
 
-### Integridad Referencial
-- **Cascada en eliminación**: `ON DELETE CASCADE`
-- **Claves foráneas**: Mantenimiento automático de relaciones
-- **Validación de existencias**: Control de stock disponible
+<div align="center">
 
-## 📈 Casos de Uso
+### 📊 **Dashboard Principal**
+*[Screenshot placeholder - Dashboard con métricas en tiempo real]*
 
-### Caso 1: Registro de Nuevo Inventario
-1. Se inserta un producto en `inventory_consumption`
-2. Se ejecuta `trigger_registrar_inventario`
-3. Se crea automáticamente una transacción tipo ENTRADA
-4. El sistema queda listo para consumos
+### 📦 **Gestión de Inventario**
+*[Screenshot placeholder - Interfaz de inventario con filtros]*
 
-### Caso 2: Registro de Consumo
-1. Se registra un consumo en la tabla `consumption`
-2. Se ejecuta `trigger_registrar_consumo`
-3. Se valida el stock disponible
-4. Se actualiza `current_stock` en `inventory_consumption`
-5. Se crea una transacción tipo SALIDA
+### 🔄 **Historial de Transacciones**
+*[Screenshot placeholder - Lista de transacciones con paginación]*
 
-### Caso 3: Anulación de Consumo
-1. Se actualiza el status del consumo a 'I'
-2. Se ejecuta `trigger_devolver_stock`
-3. Se restaura el stock en el inventario
-4. Se marca la transacción relacionada como inactiva
-
-## 🛠️ Instalación y Configuración
-
-### Requisitos del Sistema
-- Java 17+
-- Node.js 18+
-- PostgreSQL 15+
-- Maven 3.8+
-
-### Configuración de Base de Datos
-```sql
--- Ejecutar el script SQL proporcionado
--- Este incluye:
--- 1. Creación de tablas
--- 2. Definición de triggers y funciones
--- 3. Inserción de datos iniciales
--- 4. Creación de vistas
-```
-
-### Variables de Entorno
-```properties
-# Base de datos
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=inventory_system
-DB_USER=postgres
-DB_PASSWORD=password
-
-# Aplicación
-SERVER_PORT=8080
-FRONTEND_URL=http://localhost:4200
-```
-
-## 📝 API Endpoints
-
-### Inventario
-- `GET /api/inventory` - Listar inventario
-- `POST /api/inventory` - Crear nuevo inventario
-- `PUT /api/inventory/{id}` - Actualizar inventario
-- `DELETE /api/inventory/{id}` - Eliminar inventario
-
-### Consumos
-- `GET /api/consumption` - Listar consumos
-- `POST /api/consumption` - Registrar consumo
-- `PUT /api/consumption/{id}` - Actualizar consumo
-- `DELETE /api/consumption/{id}` - Anular consumo
-
-### Transacciones
-- `GET /api/transactions` - Historial de transacciones
-- `GET /api/transactions/report` - Generar reporte PDF
-
-### Hogares
-- `GET /api/homes` - Listar hogares
-- `POST /api/homes` - Crear hogar
-- `PUT /api/homes/{id}` - Actualizar hogar
-
-## 🐛 Troubleshooting
-
-### Problemas Comunes
-
-1. **Error de stock negativo**
-   - **Causa**: Intento de consumir más cantidad que el stock disponible
-   - **Solución**: Verificar stock antes de registrar consumo
-
-2. **Trigger no se ejecuta**
-   - **Causa**: Error en la función o constraint violado
-   - **Solución**: Revisar logs de PostgreSQL y validar datos
-
-3. **Transacciones duplicadas**
-   - **Causa**: Ejecución múltiple de triggers
-   - **Solución**: Implementar controles de idempotencia
-
-## 📞 Soporte y Contacto
-
-Para soporte técnico o consultas sobre el sistema:
-- **Documentación**: Revisar este documento
-- **Logs**: Consultar logs de aplicación y base de datos
-- **Issues**: Reportar problemas con ejemplos reproducibles
+</div>
 
 ---
 
-*Documento generado para el Sistema de Gestión de Inventario y Consumo*  
-*Versión: 1.0*  
-*Fecha: Septiembre 2025*
+## 🔧 **Troubleshooting**
+
+<details>
+<summary><strong>❗ Error: Stock negativo</strong></summary>
+
+**Problema:** `ERROR: new row for relation violates check constraint`
+
+**Solución:**
+```sql
+-- Verificar stock disponible antes del consumo
+SELECT current_stock FROM inventory_consumption WHERE product_id = X;
+```
+
+</details>
+
+<details>
+<summary><strong>⚠️ Trigger no ejecuta</strong></summary>
+
+**Problema:** Las transacciones no se crean automáticamente
+
+**Solución:**
+```sql
+-- Verificar que los triggers estén activos
+SELECT * FROM information_schema.triggers;
+```
+
+</details>
+
+---
+
+## 📝 **Roadmap Futuro**
+
+- [ ] 🔔 **Sistema de Notificaciones**
+- [ ] 📊 **Dashboard Analytics Avanzado**
+- [ ] 🔍 **Búsqueda Full-Text**
+- [ ] 🌐 **API GraphQL**
+- [ ] 📱 **App Mobile**
+- [ ] 🤖 **Predicción de Demanda con IA**
+
+---
+
+## 👥 **Contribuciones**
+
+<div align="center">
+
+¿Quieres contribuir? ¡Genial! 🎉
+
+<a href="#" style="text-decoration: none;">
+  <img src="https://img.shields.io/badge/Contribuir-Bienvenido-brightgreen?style=for-the-badge&logo=github" alt="Contribuir">
+</a>
+
+1. 🍴 **Fork** el repositorio
+2. 🌿 **Crea** tu branch de feature
+3. 💾 **Commit** tus cambios
+4. 📤 **Push** al branch
+5. 🎯 **Abre** un Pull Request
+
+</div>
+
+---
+
+<div align="center">
+
+## 💎 **¿Te gusta el proyecto?**
+
+<a href="#" style="text-decoration: none;">
+  <img src="https://img.shields.io/badge/⭐-Star_en_GitHub-yellow?style=for-the-badge&logo=github" alt="Star">
+</a>
+<a href="#" style="text-decoration: none;">
+  <img src="https://img.shields.io/badge/🚀-Fork_el_Repo-blue?style=for-the-badge&logo=github" alt="Fork">
+</a>
+<a href="#" style="text-decoration: none;">
+  <img src="https://img.shields.io/badge/💬-Únete_a_Discord-purple?style=for-the-badge&logo=discord" alt="Discord">
+</a>
+
+---
+
+### 🎯 **Sistema de Inventario Premium**
+*Desarrollado con ❤️ para la excelencia empresarial*
+
+**[⬆ Volver arriba](#-sistema-de-gestión-de-inventario--transacciones)**
+
+</div>
